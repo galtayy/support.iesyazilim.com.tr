@@ -184,10 +184,8 @@ const Dashboard = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {recentTickets.map((ticket) => {
-                      // Calculate duration
+                      // Format date
                       const startTime = new Date(ticket.startTime);
-                      const endTime = new Date(ticket.endTime);
-                      const durationHours = ((endTime - startTime) / (1000 * 60 * 60)).toFixed(1);
                       
                       return (
                         <tr key={ticket.id} className="hover:bg-gray-50">

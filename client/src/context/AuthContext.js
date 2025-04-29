@@ -14,6 +14,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Logout function
+  const logout = () => {
+    // Remove token from localStorage
+    localStorage.removeItem('token');
+    
+    // Update state
+    setUser(null);
+    setIsAuthenticated(false);
+    
+    // Navigate to login page
+    navigate('/login');
+  };
+
   // Initialize auth state
   useEffect(() => {
     const initAuth = async () => {
@@ -45,7 +58,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     initAuth();
-  }, []);
+  }, [navigate]);
 
   // Login function
   const login = async (email, password) => {
@@ -82,19 +95,6 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Logout function
-  const logout = () => {
-    // Remove token from localStorage
-    localStorage.removeItem('token');
-    
-    // Update state
-    setUser(null);
-    setIsAuthenticated(false);
-    
-    // Navigate to login page
-    navigate('/login');
   };
 
   // Change password function

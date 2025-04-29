@@ -354,7 +354,7 @@ const TicketDetails = () => {
                   >
                     <div className="h-full w-full overflow-hidden">
                       <img
-                        src={`${process.env.REACT_APP_API_URL || 'http://localhost:5050'}/${image.imagePath}`}
+                        src={`${process.env.REACT_APP_API_URL || 'http://localhost:5051'}/${image.imagePath}`}
                         alt={image.description || 'Destek kaydı fotoğrafı'}
                         className="h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-105"
                       />
@@ -621,7 +621,7 @@ const TicketDetails = () => {
         {selectedImage && (
           <div className="flex flex-col items-center">
             <img
-              src={`${process.env.REACT_APP_API_URL || 'http://localhost:5050'}/${selectedImage.imagePath}`}
+              src={`${process.env.REACT_APP_API_URL || 'http://localhost:5051'}/${selectedImage.imagePath}`}
               alt={selectedImage.description || 'Destek kaydı fotoğrafı'}
               className="max-h-96 max-w-full object-contain"
             />
@@ -630,7 +630,7 @@ const TicketDetails = () => {
             )}
             <div className="mt-4">
               <a
-                href={`${process.env.REACT_APP_API_URL || 'http://localhost:5050'}/${selectedImage.imagePath}`}
+                href={`${process.env.REACT_APP_API_URL || 'http://localhost:5051'}/${selectedImage.imagePath}`}
                 download
                 target="_blank"
                 rel="noopener noreferrer"

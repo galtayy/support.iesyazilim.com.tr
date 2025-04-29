@@ -51,7 +51,7 @@ exports.sendApprovalEmail = async (req, res) => {
     });
     
     // Create approval and reject links
-    const baseUrl = process.env.APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.APP_URL || 'http://localhost:3001';
     const approvalLink = `${baseUrl}/ticket-approval/${approvalToken}/approve`;
     const rejectLink = `${baseUrl}/ticket-approval/${approvalToken}/reject`;
     

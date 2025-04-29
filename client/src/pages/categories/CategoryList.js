@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import PageHeader from '../../components/ui/PageHeader';
@@ -13,7 +12,6 @@ import Badge from '../../components/ui/Badge';
 import categoryService from '../../services/categoryService';
 
 const CategoryList = () => {
-  const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -67,16 +65,6 @@ const CategoryList = () => {
     } finally {
       setDeleteLoading(false);
     }
-  };
-
-  // Check if color is light or dark
-  const isLightColor = (color) => {
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    return brightness > 128;
   };
 
   return (

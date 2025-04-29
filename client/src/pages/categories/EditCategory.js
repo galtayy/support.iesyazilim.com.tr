@@ -58,7 +58,7 @@ const EditCategory = () => {
     };
 
     fetchCategory();
-  }, [id]);
+  }, [id, formik]);
 
   // Initialize formik
   const formik = useFormik({

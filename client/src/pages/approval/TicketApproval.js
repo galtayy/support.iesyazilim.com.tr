@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { 
@@ -15,7 +15,6 @@ import approvalService from '../../services/approvalService';
 
 const TicketApproval = () => {
   const { token, action } = useParams();
-  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
