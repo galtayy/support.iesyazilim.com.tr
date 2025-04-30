@@ -44,6 +44,13 @@ const ticketService = {
   // Delete ticket image
   deleteImage: (ticketId, imageId) => {
     return api.delete(`/tickets/${ticketId}/images/${imageId}`);
+  },
+  
+  // Generate PDF for a ticket
+  generatePDF: (ticketId) => {
+    return api.get(`/tickets/${ticketId}/pdf`, { 
+      responseType: 'blob'
+    });
   }
 };
 

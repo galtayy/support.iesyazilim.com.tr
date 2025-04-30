@@ -29,6 +29,10 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
+    subject: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: false
@@ -77,6 +81,10 @@ module.exports = (sequelize, DataTypes) => {
     externalApproval: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    // PDF token for secure download
+    pdfToken: {
+      type: DataTypes.STRING
     }
   }, {
     tableName: 'support_tickets',

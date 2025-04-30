@@ -2,6 +2,7 @@ const { SupportTicket, Customer, Category, User } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../utils/email/emailService');
 const { getApprovalRequestEmail, getApprovalCompletedEmail } = require('../utils/email/emailTemplates');
+const { generateTicketPDF } = require('../utils/pdfGenerator');
 
 // Send approval email
 exports.sendApprovalEmail = async (req, res) => {
@@ -51,12 +52,23 @@ exports.sendApprovalEmail = async (req, res) => {
     });
     
     // Create approval and reject links
-    const baseUrl = process.env.APP_URL || 'http://localhost:3001';
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://support.iesyazilim.com.tr' 
+      : (process.env.APP_URL || 'http://localhost:3001');
     const approvalLink = `${baseUrl}/ticket-approval/${approvalToken}/approve`;
     const rejectLink = `${baseUrl}/ticket-approval/${approvalToken}/reject`;
     
+    // Generate PDF URL with a token for authentication - make sure the URL is accessible
+    const pdfToken = uuidv4();
+    await ticket.update({ pdfToken });
+    
+    const apiBaseUrl = process.env.NODE_ENV === 'production'
+      ? 'https://support.iesyazilim.com.tr/api'
+      : 'http://localhost:5051/api';
+    const pdfUrl = `${apiBaseUrl}/tickets/${id}/pdf/${pdfToken}`;
+    
     // Prepare email
-    const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink);
+    const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink, pdfUrl);
     
     // Send email
     await sendEmail({
@@ -199,7 +211,9 @@ exports.verifyApprovalToken = async (req, res) => {
         endTime: ticket.endTime,
         category: ticket.Category.name,
         supportStaff: `${ticket.supportStaff.firstName} ${ticket.supportStaff.lastName}`,
-        description: ticket.description
+        subject: ticket.subject || '',
+        description: ticket.description,
+        location: ticket.location || ''
       }
     });
   } catch (error) {

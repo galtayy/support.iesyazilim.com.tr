@@ -172,10 +172,41 @@ const TicketApproval = () => {
                   <p className="mt-1 text-gray-900">{ticket.supportStaff}</p>
                 </div>
                 
+                {ticket.subject && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700">İş Konusu</h3>
+                  <p className="mt-1 text-gray-900 font-medium">{ticket.subject}</p>
+                </div>
+                )}
+                
                 <div>
                   <h3 className="text-sm font-medium text-gray-700">Açıklama</h3>
                   <p className="mt-1 text-gray-900">{ticket.description}</p>
                 </div>
+                
+                {ticket.location && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700">Konum</h3>
+                  {ticket.location.includes('https://maps.google.com') ? (
+                    <div className="mt-1">
+                      <a 
+                        href={ticket.location} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary text-sm flex items-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Google Maps'te Görüntüle
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-gray-900">{ticket.location}</p>
+                  )}
+                </div>
+                )}
               </div>
               
               <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">

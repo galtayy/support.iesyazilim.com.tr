@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { sequelize } = require('./models');
+const { initFonts } = require('./utils/fontLoader');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -24,6 +25,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_PATH || 'uploads')));
 
+// Serve PDF files
+app.use('/pdfs', express.static(path.join(__dirname, process.env.PDF_PATH || 'pdfs')));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -41,13 +45,23 @@ app.get('/', (req, res) => {
 // Database connection and server start
 async function startServer() {
   try {
+    // Initialize fonts
+    try {
+      await initFonts();
+      console.log('Fonts initialized successfully.');
+    } catch (err) {
+      console.warn('Font initialization failed, using system fonts:', err.message);
+    }
+
+    // Test DB connection only (no sync)
     await sequelize.authenticate();
     console.log('Database connection established successfully.');
-    
-    // Sync database models
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
-    console.log('Database models synchronized.');
-    
+
+    // Migrations should be applied separately via CLI
+    if (process.env.NODE_ENV === 'development') {
+      console.log('⚠️ Sequelize sync is disabled. Run migrations via: npx sequelize-cli db:migrate');
+    }
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Local: http://localhost:${PORT}`);

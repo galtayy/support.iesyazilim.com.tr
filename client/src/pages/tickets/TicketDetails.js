@@ -10,7 +10,8 @@ import {
   XMarkIcon,
   PhotoIcon,
   ArrowDownTrayIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/ui/PageHeader';
@@ -41,6 +42,7 @@ const TicketDetails = () => {
   const [rejectNotes, setRejectNotes] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Load ticket data
   useEffect(() => {
@@ -153,6 +155,42 @@ const TicketDetails = () => {
     setShowImageModal(true);
   };
 
+  // Handle PDF export
+  const handleExportPDF = async () => {
+    try {
+      setPdfLoading(true);
+      
+      // PDF'i doğrudan indirmek için ticketService'i kullanıyoruz
+      const response = await ticketService.generatePDF(id);
+      
+      // PDF blobunu oluştur
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      
+      // İndirme bağlantısı oluşturma
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `servis-kaydi-${id}.pdf`);
+      
+      // Uygulamanın tetiklemesi için dökümanı ekleyelim
+      document.body.appendChild(link);
+      
+      // İndirmeyi başlat
+      link.click();
+      
+      // Temizleme
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('PDF başarıyla indirildi.');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('PDF oluşturulurken bir hata oluştu.');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   // Format status
   const getStatusLabel = (status) => {
     switch (status) {
@@ -228,10 +266,10 @@ const TicketDetails = () => {
   return (
     <div>
       <PageHeader
-        title="Destek Kaydı Detayı"
-        description="Destek kaydı bilgilerini görüntüleyin"
+        title="Servis Kaydı Detayı"
+        description="Servis kaydı bilgilerini görüntüleyin"
         breadcrumbItems={[
-          { label: 'Destek Kayıtları', to: '/tickets' },
+          { label: 'Servis Kayıtları', to: '/tickets' },
           { label: 'Detay' }
         ]}
         actions={
@@ -274,6 +312,23 @@ const TicketDetails = () => {
                 )}
               </button>
             )}
+            <button
+              type="button"
+              className="btn btn-outline flex items-center justify-center w-full sm:w-auto"
+              onClick={handleExportPDF}
+              disabled={pdfLoading}
+            >
+              {pdfLoading ? (
+                <div className="flex items-center">
+                  <Spinner size="sm" className="mr-2" /> PDF Hazırlanıyor...
+                </div>
+              ) : (
+                <>
+                  <DocumentTextIcon className="-ml-1 mr-2 h-5 w-5" />
+                  PDF İndir
+                </>
+              )}
+            </button>
           </div>
         }
       />
@@ -281,7 +336,7 @@ const TicketDetails = () => {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Ticket Details */}
         <div className="lg:col-span-2">
-          <Card title="Destek Kaydı Bilgileri">
+          <Card title="Servis Kaydı Bilgileri">
             <div className="border-b border-gray-200 pb-4">
               <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div>
@@ -329,12 +384,37 @@ const TicketDetails = () => {
                 {ticket.location && (
                   <div className="sm:col-span-2">
                     <h4 className="text-sm font-medium text-gray-500">Konum</h4>
-                    <p className="mt-1 text-sm text-gray-900">{ticket.location}</p>
+                    {ticket.location.includes('https://maps.google.com') ? (
+                      <div className="mt-1">
+                        <a 
+                          href={ticket.location} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary text-sm flex items-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Google Maps'te Görüntüle
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-900">{ticket.location}</p>
+                    )}
                   </div>
                 )}
               </div>
             </div>
             <div className="pt-4">
+              {ticket.subject && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-500">İş Konusu</h4>
+                  <div className="mt-2 text-sm text-gray-900 font-medium">
+                    {ticket.subject}
+                  </div>
+                </div>
+              )}
               <h4 className="text-sm font-medium text-gray-500">İş Açıklaması</h4>
               <div className="mt-2 whitespace-pre-line text-sm text-gray-900">
                 {ticket.description}

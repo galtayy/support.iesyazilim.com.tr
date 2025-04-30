@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -20,11 +20,14 @@ const CreateTicket = () => {
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   // Form validation schema
   const validationSchema = Yup.object({
     customerId: Yup.string().required('Müşteri seçimi zorunludur'),
     categoryId: Yup.string().required('Kategori seçimi zorunludur'),
+    subject: Yup.string().required('İş konusu zorunludur').max(100, 'İş konusu en fazla 100 karakter olabilir'),
     description: Yup.string().required('İş açıklaması zorunludur'),
     startTime: Yup.date().required('Başlangıç saati zorunludur'),
     endTime: Yup.date()
@@ -62,6 +65,7 @@ const CreateTicket = () => {
     initialValues: {
       customerId: '',
       categoryId: '',
+      subject: '',
       description: '',
       startTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
       endTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -103,6 +107,58 @@ const CreateTicket = () => {
     }
   };
 
+  // Get current location
+  const getLocation = useCallback(async () => {
+    // Clear previous errors
+    setLocationError(null);
+    setLocationLoading(true);
+    
+    if (!navigator.geolocation) {
+      setLocationError('Tarayıcınız konum hizmetini desteklemiyor.');
+      setLocationLoading(false);
+      return;
+    }
+    
+    try {
+      // Get current position
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          // Create Google Maps short URL
+          const mapsUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
+          
+          // Update form value
+          formik.setFieldValue('location', mapsUrl);
+          setLocationLoading(false);
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              setLocationError('Konum izni reddedildi.');
+              break;
+            case error.POSITION_UNAVAILABLE:
+              setLocationError('Konum bilgisi mevcut değil.');
+              break;
+            case error.TIMEOUT:
+              setLocationError('Konum alınırken zaman aşımı oluştu.');
+              break;
+            default:
+              setLocationError('Konum alınırken bir hata oluştu.');
+              break;
+          }
+          setLocationLoading(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } catch (err) {
+      console.error('Location error:', err);
+      setLocationError('Konum alınırken bir hata oluştu.');
+      setLocationLoading(false);
+    }
+  }, [formik]);
+
   // Upload image
   const uploadImage = async (ticketId) => {
     if (!selectedFile) return;
@@ -127,10 +183,10 @@ const CreateTicket = () => {
   return (
     <div>
       <PageHeader
-        title="Yeni Destek Kaydı"
-        description="Yeni bir destek kaydı oluşturun"
+        title="Yeni Servis Kaydı"
+        description="Yeni bir servis kaydı oluşturun"
         breadcrumbItems={[
-          { label: 'Destek Kayıtları', to: '/tickets' },
+          { label: 'Servis Kayıtları', to: '/tickets' },
           { label: 'Yeni Kayıt' }
         ]}
       />
@@ -251,16 +307,80 @@ const CreateTicket = () => {
               <label htmlFor="location" className="block text-sm font-medium text-gray-700">
                 Konum
               </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                className="form-input mt-1"
-                value={formik.values.location}
-                onChange={formik.handleChange}
-              />
+              <div className="flex mt-1">
+                <input
+                  type="text"
+                  id="location"
+                  name="location"
+                  className="form-input flex-grow"
+                  value={formik.values.location}
+                  onChange={formik.handleChange}
+                />
+                <button
+                  type="button"
+                  className="ml-2 btn btn-outline btn-sm flex items-center"
+                  onClick={getLocation}
+                  disabled={locationLoading}
+                >
+                  {locationLoading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Konum Alınıyor...
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Konumu Al
+                    </>
+                  )}
+                </button>
+              </div>
+              {locationError && (
+                <p className="mt-1 text-sm text-red-600">{locationError}</p>
+              )}
+              {formik.values.location && formik.values.location.includes('https://maps.google.com') && (
+                <div className="mt-2">
+                  <a
+                    href={formik.values.location}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary text-sm flex items-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Google Maps'te Aç
+                  </a>
+                </div>
+              )}
             </div>
 
+            <div className="sm:col-span-2">
+              <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+                İş Konusu *
+              </label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                className={`form-input mt-1 ${
+                  formik.touched.subject && formik.errors.subject
+                    ? 'border-red-300 focus:ring-red-500'
+                    : ''
+                }`}
+                value={formik.values.subject}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                placeholder="İşin kısa konusu veya başlığı"
+              />
+              {formik.touched.subject && formik.errors.subject && (
+                <p className="mt-1 text-sm text-red-600">{formik.errors.subject}</p>
+              )}
+            </div>
+            
             <div className="sm:col-span-2">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                 İş Açıklaması *
@@ -277,6 +397,7 @@ const CreateTicket = () => {
                 value={formik.values.description}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
+                placeholder="İşle ilgili detaylı açıklama"
               />
               {formik.touched.description && formik.errors.description && (
                 <p className="mt-1 text-sm text-red-600">{formik.errors.description}</p>
