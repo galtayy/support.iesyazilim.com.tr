@@ -89,4 +89,10 @@ router.post('/:id/images', isSupportOrAdmin, supportTicketController.uploadTicke
 // Delete ticket image
 router.delete('/:id/images/:imageId', isSupportOrAdmin, supportTicketController.deleteTicketImage);
 
+// Generate PDF for a ticket - auth still required but use auth from the client API call
+router.get('/:id/pdf', isSupportOrAdmin, supportTicketController.generateTicketPDF);
+
+// Generate PDF for a ticket with token (for email links - no auth required)
+router.get('/:id/pdf/:token', supportTicketController.generateTicketPDFWithToken);
+
 module.exports = router;

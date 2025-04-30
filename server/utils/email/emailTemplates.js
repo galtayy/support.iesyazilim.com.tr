@@ -3,7 +3,7 @@
  */
 
 // Get approval request email template
-const getApprovalRequestEmail = (ticket, approvalLink, rejectLink) => {
+const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl) => {
   const date = new Date(ticket.startTime).toLocaleDateString('tr-TR');
   const startTime = new Date(ticket.startTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
   const endTime = new Date(ticket.endTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -12,6 +12,10 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink) => {
   const start = new Date(ticket.startTime);
   const end = new Date(ticket.endTime);
   const durationHours = ((end - start) / (1000 * 60 * 60)).toFixed(1);
+  
+  const baseUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://support.iesyazilim.com.tr' 
+    : (process.env.APP_URL || 'http://localhost:3001');
   
   return `
     <!DOCTYPE html>
@@ -381,12 +385,12 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink) => {
         <div class="header">
           <div class="header-bg"></div>
           <div class="header-content">
-            <div class="logo">
-              <!-- Logo placeholder - in production, use an actual logo image -->
-              <span style="color: white; font-size: 24px; font-weight: 700;">IES Yazılım</span>
-            </div>
-            <h1>Destek Kaydı Onay Talebi</h1>
-            <p>Yapılan destek hizmetini onaylamanız gerekmektedir</p>
+          <div class="logo">
+          <!-- Logo placeholder - in production, use an actual logo image -->
+          <span style="color: white; font-size: 24px; font-weight: 700;">IES Yazılım</span>
+          </div>
+          <h1>Servis Kaydı Onay Talebi</h1>
+          <p>Yapılan servis hizmetini onaylamanız gerekmektedir</p>
           </div>
         </div>
         
@@ -394,12 +398,12 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink) => {
           <div class="greeting">Sayın Yetkili,</div>
           
           <p class="message">
-            Firmanıza yapılan destek ziyareti için onayınızı rica ediyoruz. Aşağıda detayları görebilir, hizmetin uygunluğuna göre onaylayabilir veya reddedebilirsiniz.
+            Firmanıza yapılan servis ziyareti için onayınızı rica ediyoruz. Aşağıda detayları görebilir, hizmetin uygunluğuna göre onaylayabilir veya reddedebilirsiniz.
           </p>
           
           <div class="details-card">
             <div class="card-header">
-              <h2>Destek Kaydı Detayları</h2>
+              <h2>Servis Kaydı Detayları</h2>
               <div class="card-icon">&#9881;</div> <!-- Gear icon for technical support -->
             </div>
             
@@ -424,6 +428,11 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink) => {
                 <th>Kategori</th>
                 <td>${ticket.Category.name}</td>
               </tr>
+              ${ticket.subject ? `
+              <tr>
+                <th>İş Konusu</th>
+                <td><strong>${ticket.subject}</strong></td>
+              </tr>` : ''}              
               <tr>
                 <th>Açıklama</th>
                 <td>
@@ -432,23 +441,41 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink) => {
                   </div>
                 </td>
               </tr>
+              ${ticket.location && ticket.location.includes('https://maps.google.com') ? `
+              <tr>
+                <th>Konum</th>
+                <td>
+                  <a href="${ticket.location}" target="_blank" style="color: #2563eb; text-decoration: none; display: inline-flex; align-items: center;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2991/2991231.png" width="18" height="18" style="margin-right: 5px;"/>
+                    Google Maps'te Görüntüle
+                  </a>
+                </td>
+              </tr>
+              ` : ticket.location ? `
+              <tr>
+                <th>Konum</th>
+                <td>${ticket.location}</td>
+              </tr>
+              ` : ''}
             </table>
           </div>
           
           <div class="button-container">
             <a href="${approvalLink}" class="button approve">&#10004; ONAYLA</a>
             <a href="${rejectLink}" class="button reject">&#10008; REDDET</a>
+            ${pdfUrl ? `<a href="${pdfUrl}" class="button pdf" style="background-color: #3b82f6; border-bottom: 3px solid #1e40af;">&#128196; PDF İNDİR</a>` : ''}
           </div>
           
           <div class="info-section">
             <p><span class="info-title">Not:</span> Butonların çalışmaması durumunda aşağıdaki linkleri tarayıcınıza kopyalayabilirsiniz:</p>
             <p><span class="info-title">Onaylamak için:</span> <a href="${approvalLink}">${approvalLink}</a></p>
             <p><span class="info-title">Reddetmek için:</span> <a href="${rejectLink}">${rejectLink}</a></p>
+            ${pdfUrl ? `<p><span class="info-title">Servis kaydını PDF olarak indirmek için:</span> <a href="${pdfUrl}">${pdfUrl}</a></p>` : ''}
           </div>
           
           <div class="signature">
             <p>Teşekkür ederiz,</p>
-            <p class="company-name">IES Yazılım Destek Ekibi</p>
+            <p class="company-name">IES Yazılım Servis Ekibi</p>
           </div>
         </div>
         

@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const { generateTicketPDF } = require('../utils/simplePdfGenerator');
 
 // Setup file upload
 const storage = multer.diskStorage({
@@ -130,6 +131,107 @@ exports.getAllTickets = async (req, res) => {
   }
 };
 
+// Generate PDF for a ticket
+exports.generateTicketPDF = async (req, res) => {
+  try {
+    const ticket = await SupportTicket.findByPk(req.params.id, {
+      include: [
+        {
+          model: Customer,
+          attributes: ['id', 'name', 'contactPerson', 'contactEmail', 'contactPhone']
+        },
+        {
+          model: Category,
+          attributes: ['id', 'name', 'color']
+        },
+        {
+          model: User,
+          as: 'supportStaff',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        },
+        {
+          model: TicketImage,
+          attributes: ['id', 'imagePath', 'description']
+        }
+      ]
+    });
+    
+    if (!ticket) {
+      return res.status(404).json({ error: 'Servis kaydı bulunamadı.' });
+    }
+    
+    // Set response headers for PDF download
+    const filename = `servis-kaydi-${ticket.id}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    
+    // Generate and stream PDF directly to response
+    await generateTicketPDF(ticket, res);
+  } catch (error) {
+    console.error('Generate PDF error:', error);
+    res.status(500).json({ error: 'PDF oluşturulurken bir hata oluştu.' });
+  }
+};
+
+// Generate PDF for a ticket with token (for email links)
+exports.generateTicketPDFWithToken = async (req, res) => {
+  try {
+    const { id, token } = req.params;
+    
+    // Get ticket with token validation
+    const ticket = await SupportTicket.findOne({
+      where: { 
+        id,
+        pdfToken: token 
+      },
+      include: [
+        {
+          model: Customer,
+          attributes: ['id', 'name', 'contactPerson', 'contactEmail', 'contactPhone']
+        },
+        {
+          model: Category,
+          attributes: ['id', 'name', 'color']
+        },
+        {
+          model: User,
+          as: 'supportStaff',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        },
+        {
+          model: TicketImage,
+          attributes: ['id', 'imagePath', 'description']
+        }
+      ]
+    });
+    
+    if (!ticket) {
+      return res.status(404).json({ error: 'Geçersiz PDF erişim linki.' });
+    }
+    
+    // Set response headers for PDF download
+    const filename = `servis-kaydi-${ticket.id}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    
+    // Generate and stream PDF directly to response
+    await generateTicketPDF(ticket, res);
+  } catch (error) {
+    console.error('Generate PDF with token error:', error);
+    res.status(500).json({ error: 'PDF oluşturulurken bir hata oluştu.' });
+  }
+};
+
 // Get ticket by ID
 exports.getTicketById = async (req, res) => {
   try {
@@ -184,13 +286,14 @@ exports.createTicket = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { customerId, categoryId, description, startTime, endTime, location } = req.body;
+    const { customerId, categoryId, subject, description, startTime, endTime, location } = req.body;
     
     // Create ticket
     const ticket = await SupportTicket.create({
       supportStaffId: req.user.id,
       customerId,
       categoryId,
+      subject,
       description,
       startTime,
       endTime,
@@ -232,7 +335,7 @@ exports.updateTicket = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { customerId, categoryId, description, startTime, endTime, location } = req.body;
+    const { customerId, categoryId, subject, description, startTime, endTime, location } = req.body;
     
     const ticket = await SupportTicket.findByPk(req.params.id);
     
@@ -253,6 +356,7 @@ exports.updateTicket = async (req, res) => {
     // Update ticket
     if (customerId) ticket.customerId = customerId;
     if (categoryId) ticket.categoryId = categoryId;
+    if (subject !== undefined) ticket.subject = subject;
     if (description) ticket.description = description;
     if (startTime) ticket.startTime = startTime;
     if (endTime) ticket.endTime = endTime;
@@ -511,5 +615,7 @@ module.exports = {
   updateTicketStatus: exports.updateTicketStatus,
   deleteTicket: exports.deleteTicket,
   uploadTicketImage: exports.uploadTicketImage,
-  deleteTicketImage: exports.deleteTicketImage
+  deleteTicketImage: exports.deleteTicketImage,
+  generateTicketPDF: exports.generateTicketPDF,
+  generateTicketPDFWithToken: exports.generateTicketPDFWithToken
 };
