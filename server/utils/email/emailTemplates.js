@@ -15,7 +15,7 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
   
   const baseUrl = process.env.NODE_ENV === 'production' 
     ? 'https://support.iesyazilim.com.tr' 
-    : (process.env.APP_URL || 'http://localhost:3001');
+    : (process.env.APP_URL || 'https://support.iesyazilim.com.tr');
   
   return `
     <!DOCTYPE html>
