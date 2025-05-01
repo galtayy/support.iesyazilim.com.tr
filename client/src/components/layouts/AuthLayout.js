@@ -24,23 +24,20 @@ const AuthLayout = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="flex flex-grow items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
+    <div className="flex min-h-screen bg-gray-50">
+      <div className="w-full flex flex-col items-center justify-center p-5 sm:p-8">
+        <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <img src={logoImage} alt="Şirket Logo" className="h-12 mx-auto mb-4" />
-            <h2 className="text-lg text-gray-600">
-              Destek portalına hoş geldiniz
-            </h2>
+            <img src={logoImage} alt="IES Yazılım Logo" className="h-14 mx-auto" />
           </div>
           
-          <div className="card p-8">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
             {/* Render auth pages (login, forgot password, etc.) */}
             <Outlet />
           </div>
           
-          <div className="mt-6 text-center text-sm text-gray-600">
-            &copy; {new Date().getFullYear()} Şirketinizin Adı. Tüm hakları saklıdır.
+          <div className="mt-6 text-center text-sm text-gray-500">
+            &copy; {new Date().getFullYear()} <span className="font-medium">IES Yazılım.</span> Tüm hakları saklıdır.
           </div>
         </div>
       </div>

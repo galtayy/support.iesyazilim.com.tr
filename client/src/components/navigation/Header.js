@@ -2,7 +2,6 @@ import React, { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
-  BellIcon,
   UserCircleIcon,
   ChevronDownIcon,
   ArrowRightOnRectangleIcon,
@@ -28,15 +27,6 @@ const Header = () => {
         </div>
         
         <div className="ml-4 flex items-center gap-4">
-          {/* Notifications dropdown - Implementation placeholder */}
-          <button
-            type="button"
-            className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <span className="sr-only">Bildirimler</span>
-            <BellIcon className="h-6 w-6" aria-hidden="true" />
-          </button>
-
           {/* Profile dropdown */}
           <Menu as="div" className="relative">
             <div>

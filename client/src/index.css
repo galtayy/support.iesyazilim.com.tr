@@ -30,27 +30,27 @@ code {
 
 /* Custom Styles */
 .btn {
-  @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 shadow-sm;
 }
 
 .btn-primary {
-  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary/50;
+  @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary/30;
 }
 
 .btn-success {
-  @apply bg-success text-white hover:bg-success/90 focus:ring-success/50;
+  @apply bg-success text-white hover:bg-success-dark focus:ring-success/30;
 }
 
 .btn-warning {
-  @apply bg-warning text-white hover:bg-warning/90 focus:ring-warning/50;
+  @apply bg-warning text-white hover:bg-warning-dark focus:ring-warning/30;
 }
 
 .btn-danger {
-  @apply bg-danger text-white hover:bg-danger/90 focus:ring-danger/50;
+  @apply bg-danger text-white hover:bg-danger-dark focus:ring-danger/30;
 }
 
 .btn-outline {
-  @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+  @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-300;
 }
 
 .card {
@@ -58,19 +58,19 @@ code {
 }
 
 .form-input {
-  @apply w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20;
+  @apply w-full rounded-lg border-gray-300 shadow-sm py-3 px-4 transition-colors duration-200 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20;
 }
 
 .form-select {
-  @apply w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20;
+  @apply w-full rounded-lg border-gray-300 shadow-sm py-3 px-4 transition-colors duration-200 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20;
 }
 
 .form-checkbox {
-  @apply rounded border-gray-300 text-primary focus:ring-primary;
+  @apply rounded border-gray-300 text-primary transition-colors duration-200 focus:ring-primary focus:ring-opacity-20;
 }
 
 .form-radio {
-  @apply border-gray-300 text-primary focus:ring-primary;
+  @apply border-gray-300 text-primary transition-colors duration-200 focus:ring-primary focus:ring-opacity-20;
 }
 
 /* Status badges */

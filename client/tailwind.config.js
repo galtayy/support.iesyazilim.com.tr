@@ -7,11 +7,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'primary': '#3A7BD5', // Ana mavi renk
-        'success': '#61C28C', // Yeşil
-        'warning': '#FFA84B', // Turuncu
-        'danger': '#E05A5A',  // Kırmızı
-        'dark': '#2E2E2E',    // Koyu gri
+        'primary': '#3A7BD5',       // Ana mavi renk
+        'primary-dark': '#2A6AC4',  // Ana mavi rengin koyu tonu
+        'primary-light': '#5A9BE5', // Ana mavi rengin açık tonu
+        'success': '#61C28C',       // Yeşil
+        'success-dark': '#50B17A',  // Koyu yeşil
+        'warning': '#FFA84B',       // Turuncu
+        'warning-dark': '#F9973A',  // Koyu turuncu
+        'danger': '#E05A5A',        // Kırmızı
+        'danger-dark': '#D04545',   // Koyu kırmızı
+        'dark': '#2E2E2E',          // Koyu gri
       },
       fontFamily: {
         'poppins': ['Poppins', 'sans-serif'],
