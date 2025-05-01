@@ -23,7 +23,8 @@ const sendEmail = async (options) => {
       from: process.env.EMAIL_FROM,
       to: options.to,
       subject: options.subject,
-      html: options.html
+      html: options.html,
+      attachments: options.attachments || [] // Dosya ekleri için yeni alan
     };
 
     // Send email

@@ -93,7 +93,7 @@ npm start
 ### Temel İş Akışı
 
 1. Destek personeli müşteri ziyareti yaparak ilgili işleri gerçekleştirir
-2. Uygulama üzerinden destek kaydı oluşturur:
+2. Uygulama üzerinden servis kaydı oluşturur:
    - Müşteri seçimi
    - Kategori seçimi
    - İş açıklaması

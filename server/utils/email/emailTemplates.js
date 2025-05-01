@@ -3,7 +3,7 @@
  */
 
 // Get approval request email template
-const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl) => {
+const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null) => {
   const date = new Date(ticket.startTime).toLocaleDateString('tr-TR');
   const startTime = new Date(ticket.startTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
   const endTime = new Date(ticket.endTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -23,7 +23,7 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl) => {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Destek Kaydı Onay Talebi</title>
+      <title>Servis Kaydı Onay Talebi</title>
       <style>
         /* Base styles */
         * {
@@ -463,14 +463,18 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl) => {
           <div class="button-container">
             <a href="${approvalLink}" class="button approve">&#10004; ONAYLA</a>
             <a href="${rejectLink}" class="button reject">&#10008; REDDET</a>
-            ${pdfUrl ? `<a href="${pdfUrl}" class="button pdf" style="background-color: #3b82f6; border-bottom: 3px solid #1e40af;">&#128196; PDF İNDİR</a>` : ''}
+          </div>
+
+          <!-- PDF indirme butonu için ayrı bir bölüm oluştur -->
+          <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd;">
+            <h3 style="margin-top: 0; color: #0284c7; font-size: 18px;">Servis Raporu</h3>
+            <p style="margin-bottom: 15px; color: #334155;">Servis kaydına ait PDF dosyası bu e-postaya eklenmiştir. Lütfen e-postanın ekleri bölümüne bakınız.</p>
           </div>
           
           <div class="info-section">
             <p><span class="info-title">Not:</span> Butonların çalışmaması durumunda aşağıdaki linkleri tarayıcınıza kopyalayabilirsiniz:</p>
             <p><span class="info-title">Onaylamak için:</span> <a href="${approvalLink}">${approvalLink}</a></p>
             <p><span class="info-title">Reddetmek için:</span> <a href="${rejectLink}">${rejectLink}</a></p>
-            ${pdfUrl ? `<p><span class="info-title">Servis kaydını PDF olarak indirmek için:</span> <a href="${pdfUrl}">${pdfUrl}</a></p>` : ''}
           </div>
           
           <div class="signature">
@@ -506,7 +510,7 @@ const getApprovalCompletedEmail = (ticket, status) => {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Destek Kaydı ${statusText}</title>
+      <title>Servis Kaydı ${statusText}</title>
       <style>
         /* Base styles */
         * {
@@ -770,7 +774,7 @@ const getApprovalCompletedEmail = (ticket, status) => {
               <span style="color: white; font-size: 24px; font-weight: 700;">IES Yazılım</span>
             </div>
             <span class="status-icon">${statusIcon}</span>
-            <h1>Destek Kaydı ${statusText}</h1>
+            <h1>Servis Kaydı ${statusText}</h1>
           </div>
         </div>
         

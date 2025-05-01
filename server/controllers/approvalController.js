@@ -2,7 +2,7 @@ const { SupportTicket, Customer, Category, User } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../utils/email/emailService');
 const { getApprovalRequestEmail, getApprovalCompletedEmail } = require('../utils/email/emailTemplates');
-const { generateTicketPDF } = require('../utils/pdfGenerator');
+const { generateTicketPDF, generateTicketPDFToBuffer } = require('../utils/simplePdfGenerator');
 
 // Send approval email
 exports.sendApprovalEmail = async (req, res) => {
@@ -34,7 +34,7 @@ exports.sendApprovalEmail = async (req, res) => {
     
     // Check if ticket is already approved/rejected
     if (ticket.status !== 'pending') {
-      return res.status(400).json({ error: 'Bu destek kaydı zaten onaylanmış veya reddedilmiş.' });
+      return res.status(400).json({ error: 'Bu servis kaydı zaten onaylanmış veya reddedilmiş.' });
     }
     
     // Check if customer has contact email
@@ -45,11 +45,18 @@ exports.sendApprovalEmail = async (req, res) => {
     // Generate approval token
     const approvalToken = uuidv4();
     
-    // Update ticket with approval token
+    // Generate PDF URL token for authentication
+    const pdfToken = uuidv4();
+    
+    // Update ticket with both tokens together in a single update
     await ticket.update({
       approvalToken,
+      pdfToken,
       emailSent: true
     });
+    
+    // Debug log
+    console.log('Token generation for ticket #' + id, { approvalToken, pdfToken });
     
     // Create approval and reject links
     const baseUrl = process.env.NODE_ENV === 'production' 
@@ -58,24 +65,46 @@ exports.sendApprovalEmail = async (req, res) => {
     const approvalLink = `${baseUrl}/ticket-approval/${approvalToken}/approve`;
     const rejectLink = `${baseUrl}/ticket-approval/${approvalToken}/reject`;
     
-    // Generate PDF URL with a token for authentication - make sure the URL is accessible
-    const pdfToken = uuidv4();
-    await ticket.update({ pdfToken });
-    
+    // API ve client base URL'lerini ayarla
     const apiBaseUrl = process.env.NODE_ENV === 'production'
       ? 'https://support.iesyazilim.com.tr/api'
       : 'http://localhost:5051/api';
-    const pdfUrl = `${apiBaseUrl}/tickets/${id}/pdf/${pdfToken}`;
-    
-    // Prepare email
-    const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink, pdfUrl);
-    
-    // Send email
-    await sendEmail({
-      to: ticket.Customer.contactEmail,
-      subject: 'IES Yazılım Destek Kaydı Onay Talebi',
-      html: emailHTML
-    });
+      
+    // Generate PDF file and send as attachment to email
+    try {
+      // PDF buffer oluştur
+      const pdfBuffer = await generateTicketPDFToBuffer(ticket);
+      
+      // PDF dosyası için dosya adı oluştur
+      const pdfFileName = `servis-kaydi-${ticket.id}.pdf`;
+      
+      // Prepare email with PDF attachment
+      const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink);
+      
+      // Send email with attachment
+      await sendEmail({
+        to: ticket.Customer.contactEmail,
+        subject: 'IES Yazılım Servis Kaydı Onay Talebi',
+        html: emailHTML,
+        attachments: [
+          {
+            filename: pdfFileName,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          }
+        ]
+      });
+    } catch (pdfError) {
+      console.error('PDF attachment creation error:', pdfError);
+      // PDF hatası olsa bile e-postayı göndermeye devam et
+      const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink);
+      
+      await sendEmail({
+        to: ticket.Customer.contactEmail,
+        subject: 'IES Yazılım Servis Kaydı Onay Talebi',
+        html: emailHTML
+      });
+    }
     
     res.json({ 
       message: 'Onay e-postası başarıyla gönderildi.',
@@ -123,7 +152,7 @@ exports.processExternalApproval = async (req, res) => {
     // Check if ticket is already approved/rejected
     if (ticket.status !== 'pending') {
       return res.json({
-        message: 'Bu destek kaydı zaten işlendi.',
+        message: 'Bu servis kaydı zaten işlendi.',
         ticket: {
           id: ticket.id,
           status: ticket.status,
@@ -142,7 +171,8 @@ exports.processExternalApproval = async (req, res) => {
       status,
       approvalDate: new Date(),
       approvalNotes: status === 'rejected' ? rejectReason : '',
-      externalApproval: true
+      externalApproval: true,
+      approvalToken: null  // Geçersiz kıl token'ı, aynı link tekrar kullanılamasın
     });
     
     // Send confirmation email
@@ -151,7 +181,7 @@ exports.processExternalApproval = async (req, res) => {
       
       await sendEmail({
         to: ticket.Customer.contactEmail,
-        subject: `IES Yazılım Destek Kaydı ${status === 'approved' ? 'Onaylandı' : 'Reddedildi'}`,
+        subject: `IES Yazılım Servis Kaydı ${status === 'approved' ? 'Onaylandı' : 'Reddedildi'}`,
         html: emailHTML
       });
     }
@@ -174,31 +204,85 @@ exports.processExternalApproval = async (req, res) => {
 
 // Verify approval token (for frontend to check token validity)
 exports.verifyApprovalToken = async (req, res) => {
-  try {
-    const { token } = req.params;
-    
-    // Find ticket by approval token
-    const ticket = await SupportTicket.findOne({
-      where: { approvalToken: token },
-      include: [
-        {
-          model: Customer,
-          attributes: ['id', 'name']
-        },
-        {
-          model: Category,
-          attributes: ['id', 'name']
-        },
-        {
+try {
+const { token } = req.params;
+
+// Find ticket by approval token
+const ticket = await SupportTicket.findOne({
+where: { approvalToken: token },
+include: [
+{
+model: Customer,
+attributes: ['id', 'name']
+},
+{
+model: Category,
+attributes: ['id', 'name']
+},
+{
+model: User,
+as: 'supportStaff',
+attributes: ['id', 'firstName', 'lastName']
+}
+]
+});
+
+// Kontrol et: token null veya ticket bulunamadıysa
+if (!ticket) {
+  // İlk durumda token geçersiz olabilir, ancak ticket ID'si ile bulunabilir mi diye kontrol edelim
+  // Bu, onaylanmış veya reddedilmiş bir bilet token'ının kullanılmaya çalışıldığı durumları yakalar
+  const processedTicket = await SupportTicket.findOne({
+  where: { 
+    approvalToken: null,
+  status: ['approved', 'rejected'] 
+},
+include: [
+  {
+    model: Customer,
+    attributes: ['id', 'name']
+  },
+  {
+    model: Category,
+    attributes: ['id', 'name']
+    },
+      {
           model: User,
-          as: 'supportStaff',
-          attributes: ['id', 'firstName', 'lastName']
+        as: 'supportStaff',
+        attributes: ['id', 'firstName', 'lastName']
         }
-      ]
-    });
-    
-    if (!ticket) {
+        ]
+      });
+      
+      if (processedTicket) {
+        return res.json({
+          valid: false,
+          processed: true,
+          message: `Bu servis kaydı zaten ${processedTicket.status === 'approved' ? 'onaylanmış' : 'reddedilmiş'}.`,
+          ticket: {
+            id: processedTicket.id,
+            status: processedTicket.status,
+            customer: processedTicket.Customer.name,
+            approvalDate: processedTicket.approvalDate
+          }
+        });
+      }
+      
       return res.status(404).json({ valid: false, error: 'Geçersiz veya süresi dolmuş onay linki.' });
+    }
+    
+    // Bilet zaten onaylanmış veya reddedilmiş mi?
+    if (ticket.status !== 'pending') {
+      return res.json({
+        valid: false,
+        processed: true,
+        message: `Bu servis kaydı zaten ${ticket.status === 'approved' ? 'onaylanmış' : 'reddedilmiş'}.`,
+        ticket: {
+          id: ticket.id,
+          status: ticket.status,
+          customer: ticket.Customer.name,
+          approvalDate: ticket.approvalDate
+        }
+      });
     }
     
     res.json({

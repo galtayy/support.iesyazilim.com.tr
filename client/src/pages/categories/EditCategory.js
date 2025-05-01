@@ -227,7 +227,7 @@ const EditCategory = () => {
                 </label>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Pasif kategoriler, yeni destek kaydı oluşturmada görüntülenmez.
+                Pasif kategoriler, yeni servis kaydı oluşturmada görüntülenmez.
               </p>
             </div>
           </div>

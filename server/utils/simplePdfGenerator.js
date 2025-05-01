@@ -248,6 +248,29 @@ function getStatusText(status) {
   }
 }
 
+// Generate PDF as buffer and return it
+const generateTicketPDFToBuffer = async (ticket) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const chunks = [];
+      const bufferStream = new require('stream').PassThrough();
+      
+      bufferStream.on('data', chunk => chunks.push(chunk));
+      bufferStream.on('end', () => {
+        const pdfBuffer = Buffer.concat(chunks);
+        resolve(pdfBuffer);
+      });
+      
+      // Use the existing function to generate PDF to our buffer stream
+      generateTicketPDF(ticket, bufferStream).catch(reject);
+    } catch (error) {
+      console.error('PDF to buffer generation error:', error);
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
-  generateTicketPDF
+  generateTicketPDF,
+  generateTicketPDFToBuffer
 };

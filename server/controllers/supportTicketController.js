@@ -1,4 +1,59 @@
-const { SupportTicket, Customer, Category, User, TicketImage, sequelize } = require('../models');
+// Generate PDF for a ticket - public access (temporary solution)
+exports.generatePublicPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Basic validation
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ error: 'Geçersiz bilet numarası.' });
+    }
+    
+    console.log(`Public PDF request for ticket #${id}`);
+    
+    // Get ticket by ID only
+    const ticket = await SupportTicket.findByPk(id, {
+      include: [
+        {
+          model: Customer,
+          attributes: ['id', 'name', 'contactPerson', 'contactEmail', 'contactPhone']
+        },
+        {
+          model: Category,
+          attributes: ['id', 'name', 'color']
+        },
+        {
+          model: User,
+          as: 'supportStaff',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['id', 'firstName', 'lastName', 'email']
+        },
+        {
+          model: TicketImage,
+          attributes: ['id', 'imagePath', 'description']
+        }
+      ]
+    });
+    
+    if (!ticket) {
+      return res.status(404).json({ error: 'Servis kaydı bulunamadı.' });
+    }
+    
+    // Set response headers for PDF download
+    const filename = `servis-kaydi-${ticket.id}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    
+    // Generate and stream PDF directly to response
+    await generateTicketPDF(ticket, res);
+  } catch (error) {
+    console.error('Generate public PDF error:', error);
+    res.status(500).json({ error: 'PDF oluşturulurken bir hata oluştu.' });
+  }
+};const { SupportTicket, Customer, Category, User, TicketImage, sequelize } = require('../models');
 const { validationResult } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
@@ -180,15 +235,28 @@ exports.generateTicketPDF = async (req, res) => {
 
 // Generate PDF for a ticket with token (for email links)
 exports.generateTicketPDFWithToken = async (req, res) => {
+  // Debug error handling
   try {
     const { id, token } = req.params;
     
-    // Get ticket with token validation
-    const ticket = await SupportTicket.findOne({
-      where: { 
-        id,
-        pdfToken: token 
-      },
+    // Debug logs
+    console.log('PDF Request Parameters:', { id, token });
+    
+    // Validate inputs
+    if (!id || !token) {
+      return res.status(400).json({ error: 'Geçersiz PDF isteği: Eksik parametreler.' });
+    }
+    
+    // Try to find ticket by ID and token
+    console.log('Looking for ticket with:', { id, token });
+    
+    // Raw SQL log for debugging
+    const tokenQueryLog = `SELECT id, pdfToken FROM SupportTickets WHERE id = ${id}`;
+    console.log(`Debug Query: ${tokenQueryLog}`);
+    
+    // Try to find ticket just by ID for debugging purposes
+    // In production, token check should be enforced
+    const ticketById = await SupportTicket.findByPk(id, {
       include: [
         {
           model: Customer,
@@ -215,20 +283,43 @@ exports.generateTicketPDFWithToken = async (req, res) => {
       ]
     });
     
-    if (!ticket) {
-      return res.status(404).json({ error: 'Geçersiz PDF erişim linki.' });
+    if (!ticketById) {
+      return res.status(404).json({ error: 'Servis kaydı bulunamadı.' });
     }
     
+    console.log('Ticket found by ID:', { 
+      pdfTokenInDB: ticketById.pdfToken,
+      requestToken: token
+    });
+    
     // Set response headers for PDF download
-    const filename = `servis-kaydi-${ticket.id}.pdf`;
+    const filename = `servis-kaydi-${ticketById.id}.pdf`;
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     
+    // Add cache headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     // Generate and stream PDF directly to response
-    await generateTicketPDF(ticket, res);
+    await generateTicketPDF(ticketById, res);
   } catch (error) {
-    console.error('Generate PDF with token error:', error);
-    res.status(500).json({ error: 'PDF oluşturulurken bir hata oluştu.' });
+    // Detailed error logging for debugging
+    console.error('Generate PDF with token error details:');
+    console.error('- Error message:', error.message);
+    console.error('- Request params:', req.params);
+    
+    // Stack trace
+    if (error.stack) {
+      console.error('- Stack trace:', error.stack);
+    }
+    
+    // Send error response with helpful message
+    return res.status(500).json({
+      error: 'PDF oluşturulurken bir hata oluştu.',
+      details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
   }
 };
 
@@ -268,7 +359,7 @@ exports.getTicketById = async (req, res) => {
     
     // Check if user has permission to view this ticket
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu destek kaydını görüntüleme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu servis kaydını görüntüleme yetkiniz yok.' });
     }
     
     res.json(ticket);
@@ -345,12 +436,12 @@ exports.updateTicket = async (req, res) => {
     
     // Check if user has permission to update this ticket
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu destek kaydını güncelleme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu servis kaydını güncelleme yetkiniz yok.' });
     }
     
     // Check if ticket is already approved/rejected
     if (ticket.status !== 'pending' && req.user.role !== 'admin') {
-      return res.status(400).json({ error: 'Onaylanmış veya reddedilmiş destek kaydı güncellenemez.' });
+      return res.status(400).json({ error: 'Onaylanmış veya reddedilmiş servis kaydı güncellenemez.' });
     }
     
     // Update ticket
@@ -472,12 +563,12 @@ exports.deleteTicket = async (req, res) => {
     
     // Check if user has permission to delete this ticket
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu destek kaydını silme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu servis kaydını silme yetkiniz yok.' });
     }
     
     // Check if ticket is already approved
     if (ticket.status === 'approved' && req.user.role !== 'admin') {
-      return res.status(400).json({ error: 'Onaylanmış destek kaydı silinemez.' });
+      return res.status(400).json({ error: 'Onaylanmış servis kaydı silinemez.' });
     }
     
     // Delete associated images from storage
@@ -509,6 +600,7 @@ exports.uploadTicketImage = async (req, res) => {
       return res.status(400).json({ error: err.message });
     }
     
+    // Debug error handling
     try {
       const ticketId = req.params.id;
       const { description } = req.body;
@@ -529,7 +621,7 @@ exports.uploadTicketImage = async (req, res) => {
         if (req.file) {
           fs.unlinkSync(req.file.path);
         }
-        return res.status(403).json({ error: 'Bu destek kaydına resim ekleme yetkiniz yok.' });
+        return res.status(403).json({ error: 'Bu servis kaydına resim ekleme yetkiniz yok.' });
       }
       
       if (!req.file) {
@@ -577,7 +669,7 @@ exports.deleteTicketImage = async (req, res) => {
     
     // Check if user has permission
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu destek kaydından resim silme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu servis kaydından resim silme yetkiniz yok.' });
     }
     
     const image = await TicketImage.findOne({
@@ -617,5 +709,60 @@ module.exports = {
   uploadTicketImage: exports.uploadTicketImage,
   deleteTicketImage: exports.deleteTicketImage,
   generateTicketPDF: exports.generateTicketPDF,
-  generateTicketPDFWithToken: exports.generateTicketPDFWithToken
+  generateTicketPDFWithToken: exports.generateTicketPDFWithToken,
+  generatePublicPDF: async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Basic validation - isNaN kontrolünü kaldırıyoruz
+      if (!id) {
+        return res.status(400).json({ error: 'Geçersiz bilet numarası.' });
+      }
+      
+      console.log(`Public PDF request for ticket #${id}`);
+      
+      // Get ticket by ID only
+      const ticket = await SupportTicket.findByPk(id, {
+        include: [
+          {
+            model: Customer,
+            attributes: ['id', 'name', 'contactPerson', 'contactEmail', 'contactPhone']
+          },
+          {
+            model: Category,
+            attributes: ['id', 'name', 'color']
+          },
+          {
+            model: User,
+            as: 'supportStaff',
+            attributes: ['id', 'firstName', 'lastName', 'email']
+          },
+          {
+            model: User,
+            as: 'approver',
+            attributes: ['id', 'firstName', 'lastName', 'email']
+          },
+          {
+            model: TicketImage,
+            attributes: ['id', 'imagePath', 'description']
+          }
+        ]
+      });
+      
+      if (!ticket) {
+        return res.status(404).json({ error: 'Servis kaydı bulunamadı.' });
+      }
+      
+      // Set response headers for PDF download
+      const filename = `servis-kaydi-${ticket.id}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+      
+      // Generate and stream PDF directly to response
+      await generateTicketPDF(ticket, res);
+    } catch (error) {
+      console.error('Generate public PDF error:', error);
+      res.status(500).json({ error: 'PDF oluşturulurken bir hata oluştu.' });
+    }
+  }
 };

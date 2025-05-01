@@ -242,8 +242,8 @@ const TicketList = () => {
         ) : tickets.length === 0 ? (
           <EmptyState
             title="Destek kaydı bulunamadı"
-            description="Aradığınız kriterlere uygun destek kaydı bulunamadı."
-            actionText="Yeni Destek Kaydı"
+            description="Aradığınız kriterlere uygun servis kaydı bulunamadı."
+            actionText="Yeni Servis Kaydı"
             actionLink="/tickets/create"
           />
         ) : (

@@ -558,7 +558,7 @@ const TicketDetails = () => {
       <Modal
         open={showApprovalModal}
         onClose={() => setShowApprovalModal(false)}
-        title="Destek Kaydını Onayla"
+        title="Servis Kaydını Onayla"
         footer={
           <>
             <button
@@ -587,7 +587,7 @@ const TicketDetails = () => {
         }
       >
         <p className="text-gray-600">
-          Bu destek kaydını onaylamak üzeresiniz. Onay sonrası bu işlem geri alınamaz.
+          Bu servis kaydını onaylamak üzeresiniz. Onay sonrası bu işlem geri alınamaz.
         </p>
         <div className="mt-4">
           <label htmlFor="approvalNotes" className="block text-sm font-medium text-gray-700">
@@ -607,7 +607,7 @@ const TicketDetails = () => {
       <Modal
         open={showRejectModal}
         onClose={() => setShowRejectModal(false)}
-        title="Destek Kaydını Reddet"
+        title="Servis Kaydını Reddet"
         footer={
           <>
             <button
@@ -636,7 +636,7 @@ const TicketDetails = () => {
         }
       >
         <p className="text-gray-600">
-          Bu destek kaydını reddetmek üzeresiniz. Ret sonrası bu işlem geri alınamaz.
+          Bu servis kaydını reddetmek üzeresiniz. Ret sonrası bu işlem geri alınamaz.
         </p>
         <div className="mt-4">
           <label htmlFor="rejectNotes" className="block text-sm font-medium text-gray-700">
@@ -657,7 +657,7 @@ const TicketDetails = () => {
       <Modal
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        title="Destek Kaydını Sil"
+        title="Servis Kaydını Sil"
         footer={
           <>
             <button
@@ -686,7 +686,7 @@ const TicketDetails = () => {
         }
       >
         <div className="text-gray-600">
-          <p>Bu destek kaydını silmek istediğinizden emin misiniz?</p>
+          <p>Bu servis kaydını silmek istediğinizden emin misiniz?</p>
           <p className="mt-2 font-medium">Bu işlem geri alınamaz.</p>
         </div>
       </Modal>

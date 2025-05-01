@@ -115,7 +115,7 @@ const Dashboard = () => {
         description="Destek kaydı yönetim sistemi kontrol paneli"
         actions={
           <Link to="/tickets/create" className="btn btn-primary">
-            Yeni Destek Kaydı
+            Yeni Servis Kaydı
           </Link>
         }
       />
@@ -156,7 +156,7 @@ const Dashboard = () => {
             </div>
           ) : recentTickets.length === 0 ? (
             <div className="py-6 text-center text-gray-500">
-              Henüz destek kaydı bulunmuyor.
+              Henüz servis kaydı bulunmuyor.
             </div>
           ) : (
             <>
@@ -303,7 +303,7 @@ const Dashboard = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Detaylı Rapor</h3>
-                  <p className="text-sm text-gray-500">Detaylı destek kaydı raporu</p>
+                  <p className="text-sm text-gray-500">Detaylı servis kaydı raporu</p>
                 </div>
               </Link>
               

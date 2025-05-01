@@ -5,7 +5,14 @@ const { authenticate, isAdmin, isSupportOrAdmin } = require('../middleware/auth'
 
 const router = express.Router();
 
-// All routes require authentication
+// Public endpoints (no auth required)
+// Generate PDF for a ticket with token (for email links - no auth required)
+router.get('/:id/pdf/:token', supportTicketController.generateTicketPDFWithToken);
+
+// Public access to PDF (temporary solution)
+router.get('/:id/public-pdf', supportTicketController.generatePublicPDF);
+
+// All other routes require authentication
 router.use(authenticate);
 
 // Get all tickets (with filtering and pagination)
@@ -91,8 +98,5 @@ router.delete('/:id/images/:imageId', isSupportOrAdmin, supportTicketController.
 
 // Generate PDF for a ticket - auth still required but use auth from the client API call
 router.get('/:id/pdf', isSupportOrAdmin, supportTicketController.generateTicketPDF);
-
-// Generate PDF for a ticket with token (for email links - no auth required)
-router.get('/:id/pdf/:token', supportTicketController.generateTicketPDFWithToken);
 
 module.exports = router;

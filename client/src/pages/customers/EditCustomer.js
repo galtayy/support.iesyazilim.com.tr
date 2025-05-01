@@ -257,7 +257,7 @@ const EditCustomer = () => {
                 </label>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Pasif müşteriler, yeni destek kaydı oluşturmada görüntülenmez.
+                Pasif müşteriler, yeni servis kaydı oluşturmada görüntülenmez.
               </p>
             </div>
           </div>

@@ -143,7 +143,7 @@ const EditTicket = () => {
   return (
     <div>
       <PageHeader
-        title="Destek Kaydını Düzenle"
+        title="Servis Kaydını Düzenle"
         description="Destek kaydı bilgilerini güncelleyin"
         breadcrumbItems={[
           { label: 'Destek Kayıtları', to: '/tickets' },

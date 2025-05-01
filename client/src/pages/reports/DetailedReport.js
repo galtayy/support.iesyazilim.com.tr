@@ -108,7 +108,7 @@ const DetailedReport = () => {
     <div>
       <PageHeader
         title="Detaylı Rapor"
-        description="Tarih aralığı ve filtrelere göre detaylı destek kaydı raporu"
+        description="Tarih aralığı ve filtrelere göre detaylı servis kaydı raporu"
         breadcrumbItems={[
           { label: 'Raporlar', to: '/reports' },
           { label: 'Detaylı Rapor' }
@@ -259,7 +259,7 @@ const DetailedReport = () => {
           <Card title="Özet Bilgiler">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg bg-gray-50 p-4">
-                <h3 className="text-sm font-medium text-gray-500">Toplam Destek Kaydı</h3>
+                <h3 className="text-sm font-medium text-gray-500">Toplam Servis Kaydı</h3>
                 <p className="mt-2 text-3xl font-semibold text-primary">
                   {report.summary?.totalTickets || 0}
                 </p>
@@ -444,7 +444,7 @@ const DetailedReport = () => {
             
             {report.tickets?.length === 0 && (
               <div className="py-6 text-center text-gray-500">
-                Belirtilen kriterlere uygun destek kaydı bulunamadı.
+                Belirtilen kriterlere uygun servis kaydı bulunamadı.
               </div>
             )}
           </Card>

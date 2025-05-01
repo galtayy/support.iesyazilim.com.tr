@@ -39,6 +39,13 @@ const TicketApproval = () => {
           if (action === 'reject') {
             setShowModal(true);
           }
+        } else if (response.data.processed) {
+          // Bilet zaten işlenmiş (onaylanmış veya reddedilmiş)
+          setResult({
+            message: response.data.message,
+            ticket: response.data.ticket
+          });
+          setSuccess(true);
         } else {
           setError('Geçersiz veya süresi dolmuş onay linki.');
         }
@@ -139,10 +146,10 @@ const TicketApproval = () => {
             <Card>
               <div className="mb-4 text-center">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Destek Kaydı Onayı
+                  Servis Kaydı Onayı
                 </h2>
                 <p className="text-gray-600 text-sm mt-1">
-                  Lütfen aşağıdaki destek kaydını onaylayın veya reddedin.
+                  Lütfen aşağıdaki servis kaydını onaylayın veya reddedin.
                 </p>
               </div>
               
@@ -291,7 +298,7 @@ const TicketApproval = () => {
         }
       >
         <p className="text-gray-700 mb-4">
-          Lütfen destek kaydını reddetme nedeninizi belirtin.
+          Lütfen servis kaydını reddetme nedeninizi belirtin.
         </p>
         <textarea
           className="form-input w-full"
