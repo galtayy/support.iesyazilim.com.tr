@@ -60,15 +60,15 @@ exports.sendApprovalEmail = async (req, res) => {
     
     // Create approval and reject links
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://support.iesyazilim.com.tr' 
-      : (process.env.APP_URL || 'https://support.iesyazilim.com.tr');
+      ? process.env.APP_URL || 'https://support.iesyazilim.com.tr' 
+      : process.env.APP_URL || 'https://support.iesyazilim.com.tr';
     const approvalLink = `${baseUrl}/ticket-approval/${approvalToken}/approve`;
     const rejectLink = `${baseUrl}/ticket-approval/${approvalToken}/reject`;
     
     // API ve client base URL'lerini ayarla
     const apiBaseUrl = process.env.NODE_ENV === 'production'
-      ? 'https://api.support.iesyazilim.com.tr/api'
-      : 'http://localhost:5051/api';
+      ? process.env.API_URL || 'https://api.support.iesyazilim.com.tr/api'
+      : process.env.API_URL || 'http://localhost:5051/api';
       
     // Generate PDF file and send as attachment to email
     try {
