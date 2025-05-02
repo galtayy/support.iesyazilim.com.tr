@@ -13,6 +13,7 @@ const supportRoutes = require('./routes/support-tickets');
 const categoryRoutes = require('./routes/categories');
 const reportRoutes = require('./routes/reports');
 const approvalRoutes = require('./routes/approval');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 5051;
@@ -36,6 +37,7 @@ app.use('/api/tickets', supportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/approval', approvalRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Root route
 app.get('/', (req, res) => {

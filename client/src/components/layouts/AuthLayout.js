@@ -1,10 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import logoImage from '../../assets/images/iesyazilim-logo.png';
+import { useLogo } from '../../context/LogoContext';
+import defaultLogoImage from '../../assets/images/iesyazilim-logo.png';
 
 const AuthLayout = () => {
   const { isAuthenticated, loading } = useAuth();
+  const { getLogoUrl, handleLogoUpdated } = useLogo();
+  const [logoSrc, setLogoSrc] = useState('');
+  const [logoKey, setLogoKey] = useState(1); // Logo bileşenini yeniden render etmek için key
+
+  // Logo güncellemeleri için bir efekt
+  useEffect(() => {
+    // Logo URL'ini al ve önbellek önleme için timestamp ekle
+    setLogoSrc(getLogoUrl(true));
+
+    // Logo güncelleme olayını dinle
+    const updateLogoImage = () => {
+      console.log('AuthLayout: Logo güncelleme olayı algılandı');
+      // Logoyu güncel URL ile güncelle
+      setLogoSrc(getLogoUrl(true));
+      // Bileşeni yeniden render etmek için key'i güncelle
+      setLogoKey(prevKey => prevKey + 1);
+    };
+
+    // Event listener ekle
+    window.addEventListener('logoUpdated', updateLogoImage);
+
+    // Temizleme fonksiyonu
+    return () => {
+      window.removeEventListener('logoUpdated', updateLogoImage);
+    };
+  }, [getLogoUrl]);
 
   // If still loading auth state, show loading
   if (loading) {
@@ -28,7 +55,18 @@ const AuthLayout = () => {
       <div className="w-full flex flex-col items-center justify-center p-5 sm:p-8">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <img src={logoImage} alt="IES Yazılım Logo" className="h-14 mx-auto" />
+            <img 
+              key={logoKey} // Yeniden render için key ekle
+              src={logoSrc} 
+              alt="Şirket Logo" 
+              className="h-14 mx-auto company-logo" 
+              onError={(e) => {
+                console.log('Logo yüklenme hatası - varsayılan logo kullanılıyor');
+                e.target.onerror = null; 
+                e.target.src = defaultLogoImage;
+              }}
+              onLoad={() => console.log('AuthLayout: Logo başarıyla yüklendi')}
+            />
           </div>
           
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">

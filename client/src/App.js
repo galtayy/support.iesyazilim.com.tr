@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useLogo } from './context/LogoContext';
 
 // Layouts
 import MainLayout from './components/layouts/MainLayout';
@@ -15,6 +16,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard';
+
 
 // Support Ticket Pages
 import TicketList from './pages/tickets/TicketList';
@@ -81,6 +83,28 @@ const ProtectedRoute = ({ element, requiredRole = null }) => {
 };
 
 function App() {
+  // Logo güncellemelerini dinleyen global event listener
+  useEffect(() => {
+    // logoUpdated event'ini dinle
+    const handleLogoUpdated = () => {
+      console.log('App: Logo güncelleme olayı algılandı');
+      // Sayfa yenilenmeli mi diye kontrol et
+      const shouldRefresh = localStorage.getItem('logoNeedsRefresh');
+      if (shouldRefresh === 'true') {
+        localStorage.removeItem('logoNeedsRefresh');
+        window.location.reload();
+      }
+    };
+
+    // Event listener ekle
+    window.addEventListener('logoUpdated', handleLogoUpdated);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('logoUpdated', handleLogoUpdated);
+    };
+  }, []);
+
   return (
     <Routes>
       {/* Auth Routes */}
@@ -127,6 +151,7 @@ function App() {
         <Route path="/reports/monthly" element={<ProtectedRoute element={<MonthlySummary />} requiredRole="admin" />} />
         <Route path="/reports/detailed" element={<ProtectedRoute element={<DetailedReport />} requiredRole="admin" />} />
         <Route path="/reports/staff" element={<ProtectedRoute element={<StaffPerformance />} requiredRole="admin" />} />
+        
       </Route>
 
       {/* Catch All Route */}

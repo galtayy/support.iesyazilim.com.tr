@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [avatar, setAvatar] = useState(null);
   const navigate = useNavigate();
 
   // Logout function
@@ -48,6 +49,12 @@ export const AuthProvider = ({ children }) => {
           const response = await authService.getCurrentUser();
           setUser(response.data);
           setIsAuthenticated(true);
+          
+          // Load avatar from localStorage if exists
+          const savedAvatar = localStorage.getItem('userAvatar');
+          if (savedAvatar) {
+            setAvatar(savedAvatar);
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -130,16 +137,30 @@ export const AuthProvider = ({ children }) => {
       ...updatedUser
     }));
   };
+  
+  // Update user avatar
+  const updateAvatar = (avatarUrl) => {
+    setAvatar(avatarUrl);
+    
+    // Save to localStorage for persistence between refreshes
+    if (avatarUrl) {
+      localStorage.setItem('userAvatar', avatarUrl);
+    } else {
+      localStorage.removeItem('userAvatar');
+    }
+  };
 
   // Context value
   const value = {
     user,
     isAuthenticated,
     loading,
+    avatar,
     login,
     logout,
     changePassword,
-    updateProfile
+    updateProfile,
+    updateAvatar
   };
 
   return (

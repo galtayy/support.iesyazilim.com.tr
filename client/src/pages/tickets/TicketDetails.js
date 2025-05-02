@@ -53,7 +53,7 @@ const TicketDetails = () => {
         setTicket(response.data);
       } catch (error) {
         console.error('Error fetching ticket:', error);
-        setError('Destek kaydı yüklenirken bir hata oluştu.');
+        setError('Hizmet servis formu yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -86,10 +86,10 @@ const TicketDetails = () => {
       setApprovalNotes('');
       
       // Show success message
-      toast.success('Destek kaydı başarıyla onaylandı.');
+      toast.success('Hizmet servis formu başarıyla onaylandı.');
     } catch (error) {
       console.error('Error approving ticket:', error);
-      toast.error('Destek kaydı onaylanırken bir hata oluştu.');
+      toast.error('Hizmet servis formu onaylanırken bir hata oluştu.');
     } finally {
       setApprovalLoading(false);
     }
@@ -119,10 +119,10 @@ const TicketDetails = () => {
       setRejectNotes('');
       
       // Show success message
-      toast.success('Destek kaydı reddedildi.');
+      toast.success('Hizmet servis formu reddedildi.');
     } catch (error) {
       console.error('Error rejecting ticket:', error);
-      toast.error('Destek kaydı reddedilirken bir hata oluştu.');
+      toast.error('Hizmet servis formu reddedilirken bir hata oluştu.');
     } finally {
       setApprovalLoading(false);
     }
@@ -138,13 +138,13 @@ const TicketDetails = () => {
       setShowDeleteModal(false);
       
       // Show success message
-      toast.success('Destek kaydı başarıyla silindi.');
+      toast.success('Hizmet servis formu başarıyla silindi.');
       
       // Navigate to ticket list
       navigate('/tickets');
     } catch (error) {
       console.error('Error deleting ticket:', error);
-      toast.error('Destek kaydı silinirken bir hata oluştu.');
+      toast.error('Hizmet servis formu silinirken bir hata oluştu.');
       setDeleteLoading(false);
     }
   };
@@ -250,7 +250,7 @@ const TicketDetails = () => {
       <Alert
         type="error"
         title="Hata"
-        message={error || 'Destek kaydı bulunamadı.'}
+        message={error || 'Hizmet servis formu bulunamadı.'}
         className="mt-6"
       />
     );
@@ -266,7 +266,7 @@ const TicketDetails = () => {
   return (
     <div>
       <PageHeader
-        title="Servis Kaydı Detayı"
+        title="Servis Formu Detay"
         description="Servis kaydı bilgilerini görüntüleyin"
         breadcrumbItems={[
           { label: 'Servis Kayıtları', to: '/tickets' },
@@ -336,7 +336,7 @@ const TicketDetails = () => {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Ticket Details */}
         <div className="lg:col-span-2">
-          <Card title="Servis Kaydı Bilgileri">
+          <Card title="Servis Formu Bilgileri">
             <div className="border-b border-gray-200 pb-4">
               <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div>
@@ -434,8 +434,8 @@ const TicketDetails = () => {
                   >
                     <div className="h-full w-full overflow-hidden">
                       <img
-                        src={`${process.env.REACT_APP_API_URL || 'http://localhost:5051'}/${image.imagePath}`}
-                        alt={image.description || 'Destek kaydı fotoğrafı'}
+                        src={`${process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.support.iesyazilim.com.tr' : 'http://localhost:5051')}/${image.imagePath}`}
+                        alt={image.description || 'Hizmet servis formu fotoğrafı'}
                         className="h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-105"
                       />
                     </div>
@@ -558,7 +558,7 @@ const TicketDetails = () => {
       <Modal
         open={showApprovalModal}
         onClose={() => setShowApprovalModal(false)}
-        title="Servis Kaydını Onayla"
+        title="Servis Formunu Onayla"
         footer={
           <>
             <button
@@ -587,7 +587,7 @@ const TicketDetails = () => {
         }
       >
         <p className="text-gray-600">
-          Bu servis kaydını onaylamak üzeresiniz. Onay sonrası bu işlem geri alınamaz.
+          Bu hizmet servis formunu onaylamak üzeresiniz. Onay sonrası bu işlem geri alınamaz.
         </p>
         <div className="mt-4">
           <label htmlFor="approvalNotes" className="block text-sm font-medium text-gray-700">
@@ -607,7 +607,7 @@ const TicketDetails = () => {
       <Modal
         open={showRejectModal}
         onClose={() => setShowRejectModal(false)}
-        title="Servis Kaydını Reddet"
+        title="Servis Formunu Reddet"
         footer={
           <>
             <button
@@ -636,7 +636,7 @@ const TicketDetails = () => {
         }
       >
         <p className="text-gray-600">
-          Bu servis kaydını reddetmek üzeresiniz. Ret sonrası bu işlem geri alınamaz.
+          Bu hizmet servis formunu reddetmek üzeresiniz. Ret sonrası bu işlem geri alınamaz.
         </p>
         <div className="mt-4">
           <label htmlFor="rejectNotes" className="block text-sm font-medium text-gray-700">
@@ -657,7 +657,7 @@ const TicketDetails = () => {
       <Modal
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        title="Servis Kaydını Sil"
+        title="Servis Formunu Sil"
         footer={
           <>
             <button
@@ -686,7 +686,7 @@ const TicketDetails = () => {
         }
       >
         <div className="text-gray-600">
-          <p>Bu servis kaydını silmek istediğinizden emin misiniz?</p>
+          <p>Bu hizmet servis formunu silmek istediğinizden emin misiniz?</p>
           <p className="mt-2 font-medium">Bu işlem geri alınamaz.</p>
         </div>
       </Modal>
@@ -701,8 +701,8 @@ const TicketDetails = () => {
         {selectedImage && (
           <div className="flex flex-col items-center">
             <img
-              src={`${process.env.REACT_APP_API_URL || 'http://localhost:5051'}/${selectedImage.imagePath}`}
-              alt={selectedImage.description || 'Destek kaydı fotoğrafı'}
+              src={`${process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.support.iesyazilim.com.tr' : 'http://localhost:5051')}/${selectedImage.imagePath}`}
+              alt={selectedImage.description || 'Hizmet servis formu fotoğrafı'}
               className="max-h-96 max-w-full object-contain"
             />
             {selectedImage.description && (
@@ -710,7 +710,7 @@ const TicketDetails = () => {
             )}
             <div className="mt-4">
               <a
-                href={`${process.env.REACT_APP_API_URL || 'http://localhost:5051'}/${selectedImage.imagePath}`}
+                href={`${process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.support.iesyazilim.com.tr' : 'http://localhost:5051')}/${selectedImage.imagePath}`}
                 download
                 target="_blank"
                 rel="noopener noreferrer"

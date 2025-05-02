@@ -101,9 +101,9 @@ const TicketList = () => {
   return (
     <div>
       <PageHeader
-        title="Destek Kayıtları"
-        description="Tüm destek kayıtlarını görüntüleyin ve yönetin"
-        breadcrumbItems={[{ label: 'Destek Kayıtları' }]}
+        title="Hizmet Servis Formları"
+        description="Tüm hizmet servis formlarını görüntüleyin ve yönetin"
+        breadcrumbItems={[{ label: 'Hizmet Servis Formları' }]}
         actions={
           <Link to="/tickets/create" className="btn btn-primary flex items-center w-full sm:w-auto justify-center">
             <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
@@ -241,9 +241,9 @@ const TicketList = () => {
           </div>
         ) : tickets.length === 0 ? (
           <EmptyState
-            title="Destek kaydı bulunamadı"
-            description="Aradığınız kriterlere uygun servis kaydı bulunamadı."
-            actionText="Yeni Servis Kaydı"
+            title="Hizmet servis formu bulunamadı"
+            description="Aradığınız kriterlere uygun hizmet servis formu bulunamadı."
+            actionText="Yeni Hizmet Servis Formu"
             actionLink="/tickets/create"
           />
         ) : (

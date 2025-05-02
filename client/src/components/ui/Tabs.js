@@ -44,6 +44,23 @@ const Tabs = ({
 
   const styles = orientation === 'vertical' ? verticalStyles : horizontalStyles;
 
+  // Render tab label with optional icon
+  const renderTabLabel = (tab) => {
+    if (tab.icon) {
+      return (
+        <div className="flex items-center">
+          {React.cloneElement(tab.icon, { 
+            className: `${tab.icon.props.className || ''} ${
+              orientation === 'vertical' ? 'mr-2' : ''
+            }`
+          })}
+          <span>{tab.label}</span>
+        </div>
+      );
+    }
+    return tab.label;
+  };
+
   return (
     <div className={className}>
       <div className={styles.container}>
@@ -57,7 +74,7 @@ const Tabs = ({
                     className={styles.tab(activeTab === index)}
                     onClick={() => handleTabClick(index)}
                   >
-                    {tab.label}
+                    {renderTabLabel(tab)}
                   </button>
                 ))}
               </nav>
@@ -75,7 +92,7 @@ const Tabs = ({
                   className={styles.tab(activeTab === index)}
                   onClick={() => handleTabClick(index)}
                 >
-                  {tab.label}
+                  {renderTabLabel(tab)}
                 </button>
               ))}
             </nav>

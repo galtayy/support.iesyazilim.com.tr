@@ -1,3 +1,10 @@
 # dependencies
-client/node_modules/
-client/.next/
+**/client/node_modules/
+**/client/.next/
+**/.claude/settings.local.json
+**/CLAUDE.md
+**/README 2.md
+**/server/.env
+**/server/.env.production
+**/client/.env
+**/client/.env.production

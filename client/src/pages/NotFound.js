@@ -27,7 +27,7 @@ const NotFound = () => {
                 to="/tickets"
                 className="btn btn-outline"
               >
-                Destek Kayıtlarına Git
+                Hizmet Servis Formlarına Git
               </Link>
             </div>
           </div>

@@ -3,7 +3,7 @@
  */
 
 // Get approval request email template
-const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null) => {
+const getApprovalRequestEmail = async (ticket, approvalLink, rejectLink, pdfUrl = null) => {
   const date = new Date(ticket.startTime).toLocaleDateString('tr-TR');
   const startTime = new Date(ticket.startTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
   const endTime = new Date(ticket.endTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -16,6 +16,24 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
   const baseUrl = process.env.NODE_ENV === 'production' 
     ? process.env.APP_URL || 'https://support.iesyazilim.com.tr' 
     : process.env.APP_URL || 'https://support.iesyazilim.com.tr';
+    
+  // Şirket bilgilerini getir
+  const { Setting } = require('../../models');
+  let companyName = 'IES YAZILIM VE DANIŞMANLIK';
+  let companyShortName = 'IES Yazılım';
+  
+  try {
+    // Veritabanından şirket bilgilerini al
+    const companyInfoSetting = await Setting.findByPk('companyInfo');
+    if (companyInfoSetting) {
+      const companyInfo = JSON.parse(companyInfoSetting.value);
+      if (companyInfo.name) companyName = companyInfo.name;
+      if (companyInfo.shortName) companyShortName = companyInfo.shortName;
+    }
+  } catch (error) {
+    console.error('Şirket bilgileri alınamadı:', error);
+    // Varsayılan değerleri kullan
+  }
   
   return `
     <!DOCTYPE html>
@@ -23,7 +41,7 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Servis Kaydı Onay Talebi</title>
+      <title>Servis Formu Onay Talebi</title>
       <style>
         /* Base styles */
         * {
@@ -375,6 +393,7 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
             white-space: pre-wrap;
             word-break: break-word;
             overflow-wrap: break-word;
+            text-align: left !important;
           }
         }
       </style>
@@ -387,9 +406,9 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
           <div class="header-content">
           <div class="logo">
           <!-- Logo placeholder - in production, use an actual logo image -->
-          <span style="color: white; font-size: 24px; font-weight: 700;">IES Yazılım</span>
+          <span style="color: white; font-size: 24px; font-weight: 700;">${companyShortName}</span>
           </div>
-          <h1>Servis Kaydı Onay Talebi</h1>
+          <h1>Servis Formu Onay Talebi</h1>
           <p>Yapılan servis hizmetini onaylamanız gerekmektedir</p>
           </div>
         </div>
@@ -403,7 +422,7 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
           
           <div class="details-card">
             <div class="card-header">
-              <h2>Servis Kaydı Detayları</h2>
+              <h2>Servis Formu Detayıları</h2>
               <div class="card-icon">&#9881;</div> <!-- Gear icon for technical support -->
             </div>
             
@@ -434,11 +453,11 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
                 <td><strong>${ticket.subject}</strong></td>
               </tr>` : ''}              
               <tr>
-                <th>Açıklama</th>
-                <td>
-                  <div style="max-width: 100%; max-height: 300px; overflow-y: auto; overflow-x: hidden; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.6; color: #334155; overflow-wrap: break-word;">
-                    ${ticket.description}
-                  </div>
+                <th valign="top">Açıklama</th>
+                <td align="left" style="text-align: left !important;">
+                  ${ticket.description.split('\n').map(line => 
+                    `<p style="margin: 0 0 8px 0; padding: 0; text-align: left; font-size: 15px; line-height: 1.6; color: #334155;">${line || '&nbsp;'}</p>`
+                  ).join('')}
                 </td>
               </tr>
               ${ticket.location && ticket.location.includes('https://maps.google.com') ? `
@@ -465,10 +484,10 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
             <a href="${rejectLink}" class="button reject">&#10008; REDDET</a>
           </div>
 
-          <!-- PDF indirme butonu için ayrı bir bölüm oluştur -->
+          <!-- PDF raporu bölümü -->
           <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd;">
             <h3 style="margin-top: 0; color: #0284c7; font-size: 18px;">Servis Raporu</h3>
-            <p style="margin-bottom: 15px; color: #334155;">Servis kaydına ait PDF dosyası bu e-postaya eklenmiştir. Lütfen e-postanın ekleri bölümüne bakınız.</p>
+            <p style="margin-bottom: 15px; color: #334155;">Servis kaydına ait PDF dosyası bu e-postaya eklenmiştir. Lütfen e-postanın ekler bölümünden PDF dosyasını indirebilirsiniz.</p>
           </div>
           
           <div class="info-section">
@@ -479,13 +498,13 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
           
           <div class="signature">
             <p>Teşekkür ederiz,</p>
-            <p class="company-name">IES Yazılım Servis Ekibi</p>
+            <p class="company-name">${companyShortName} Servis Ekibi</p>
           </div>
         </div>
         
         <div class="footer">
           <p>Bu e-posta otomatik olarak gönderilmiştir. Lütfen cevaplamayınız.</p>
-          <p>&copy; ${new Date().getFullYear()} IES Yazılım. Tüm hakları saklıdır.</p>
+          <p>&copy; ${new Date().getFullYear()} ${companyShortName}. Tüm hakları saklıdır.</p>
         </div>
       </div>
     </body>
@@ -494,7 +513,7 @@ const getApprovalRequestEmail = (ticket, approvalLink, rejectLink, pdfUrl = null
 };
 
 // Get approval completed email template
-const getApprovalCompletedEmail = (ticket, status) => {
+const getApprovalCompletedEmail = async (ticket, status) => {
   const date = new Date(ticket.startTime).toLocaleDateString('tr-TR');
   const statusText = status === 'approved' ? 'Onaylandı' : 'Reddedildi';
   const statusColor = status === 'approved' ? '#10b981' : '#ef4444';
@@ -504,13 +523,31 @@ const getApprovalCompletedEmail = (ticket, status) => {
   const gradientStart = status === 'approved' ? '#059669' : '#b91c1c';
   const gradientEnd = status === 'approved' ? '#10b981' : '#ef4444';
   
+  // Şirket bilgilerini getir
+  const { Setting } = require('../../models');
+  let companyName = 'IES YAZILIM VE DANIŞMANLIK';
+  let companyShortName = 'IES Yazılım';
+  
+  try {
+    // Veritabanından şirket bilgilerini al
+    const companyInfoSetting = await Setting.findByPk('companyInfo');
+    if (companyInfoSetting) {
+      const companyInfo = JSON.parse(companyInfoSetting.value);
+      if (companyInfo.name) companyName = companyInfo.name;
+      if (companyInfo.shortName) companyShortName = companyInfo.shortName;
+    }
+  } catch (error) {
+    console.error('Şirket bilgileri alınamadı:', error);
+    // Varsayılan değerleri kullan
+  }
+  
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Servis Kaydı ${statusText}</title>
+      <title>Servis Formu ${statusText}</title>
       <style>
         /* Base styles */
         * {
@@ -759,6 +796,7 @@ const getApprovalCompletedEmail = (ticket, status) => {
             word-break: break-word !important;
             overflow-wrap: break-word !important;
             width: 100%;
+            text-align: left !important;
           }
         }
       </style>
@@ -771,10 +809,10 @@ const getApprovalCompletedEmail = (ticket, status) => {
           <div class="header-content">
             <div class="logo">
               <!-- Logo placeholder - in production, use an actual logo image -->
-              <span style="color: white; font-size: 24px; font-weight: 700;">IES Yazılım</span>
+              <span style="color: white; font-size: 24px; font-weight: 700;">${companyShortName}</span>
             </div>
             <span class="status-icon">${statusIcon}</span>
-            <h1>Servis Kaydı ${statusText}</h1>
+            <h1>Servis Formu ${statusText}</h1>
           </div>
         </div>
         
@@ -788,26 +826,28 @@ const getApprovalCompletedEmail = (ticket, status) => {
             ${status === 'rejected' ? `
               <div class="status-details" style="width: 100%;">
                 <h3 style="margin-top: 0; color: #4a5568; font-size: 16px;">Red Açıklaması:</h3>
-                <div class="description-container" style="max-height: 300px; overflow-y: auto; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 10px; background-color: #fafbfc; width: 100%; box-sizing: border-box;">
-                  <p class="description-text" style="margin: 0; white-space: pre-wrap !important; word-break: break-word !important; font-size: 14px; line-height: 1.6; color: #475569; overflow-wrap: break-word !important; width: 100%;">${ticket.approvalNotes || 'Belirtilmedi'}</p>
+                <div class="description-container" style="max-height: 300px; overflow-y: auto; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 10px; background-color: #fafbfc; width: 100%; box-sizing: border-box; text-align: left !important;">
+                  ${(ticket.approvalNotes || 'Belirtilmedi').split('\n').map(line => 
+                    `<p style="margin: 0 0 8px 0; padding: 0; text-align: left !important; font-size: 14px; line-height: 1.6; color: #475569;">${line || '&nbsp;'}</p>`
+                  ).join('')}
                 </div>
               </div>
             ` : ''}
           </div>
           
           <div class="info-section">
-            <p><span class="info-title">Bilgi:</span> Destek kaydı ile ilgili detayları sistemden inceleyebilirsiniz.</p>
+            <p><span class="info-title">Bilgi:</span> Hizmet servis formu ile ilgili detayları sistemden inceleyebilirsiniz.</p>
           </div>
           
           <div class="signature">
             <p>Desteğiniz için teşekkür ederiz,</p>
-            <p class="company-name">IES Yazılım Destek Ekibi</p>
+            <p class="company-name">${companyShortName} Destek Ekibi</p>
           </div>
         </div>
         
         <div class="footer">
           <p>Bu e-posta otomatik olarak gönderilmiştir. Lütfen cevaplamayınız.</p>
-          <p>&copy; ${new Date().getFullYear()} IES Yazılım. Tüm hakları saklıdır.</p>
+          <p>&copy; ${new Date().getFullYear()} ${companyShortName}. Tüm hakları saklıdır.</p>
         </div>
       </div>
     </body>

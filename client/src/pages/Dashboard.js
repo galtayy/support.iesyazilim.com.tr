@@ -112,10 +112,10 @@ const Dashboard = () => {
     <div>
       <PageHeader 
         title={`Hoş Geldiniz, ${user?.firstName}`}
-        description="Destek kaydı yönetim sistemi kontrol paneli"
+        description="Hizmet servis formu yönetim sistemi kontrol paneli"
         actions={
           <Link to="/tickets/create" className="btn btn-primary">
-            Yeni Servis Kaydı
+            Yeni Hizmet Servis Formu
           </Link>
         }
       />
@@ -140,12 +140,12 @@ const Dashboard = () => {
       {/* Recent Tickets Section */}
       <div className="mt-8">
         <Card
-          title="Son Destek Kayıtları"
-          description="Son eklenen destek kayıtlarının listesi"
+          title="Son Hizmet Servis Formları"
+          description="Son eklenen hizmet servis formlarının listesi"
           footer={
             <div className="text-center">
               <Link to="/tickets" className="text-sm font-medium text-primary hover:text-primary/90">
-                Tüm Destek Kayıtlarını Görüntüle
+                Tüm Hizmet Servis Formlarını Görüntüle
               </Link>
             </div>
           }
@@ -156,7 +156,7 @@ const Dashboard = () => {
             </div>
           ) : recentTickets.length === 0 ? (
             <div className="py-6 text-center text-gray-500">
-              Henüz servis kaydı bulunmuyor.
+              Henüz hizmet servis formu bulunmuyor.
             </div>
           ) : (
             <>
@@ -303,7 +303,7 @@ const Dashboard = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Detaylı Rapor</h3>
-                  <p className="text-sm text-gray-500">Detaylı servis kaydı raporu</p>
+                  <p className="text-sm text-gray-500">Detaylı hizmet servis formu raporu</p>
                 </div>
               </Link>
               

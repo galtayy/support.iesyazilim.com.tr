@@ -191,7 +191,7 @@ const CreateUser = () => {
               <p className="mt-1 text-sm text-gray-500">
                 {formik.values.role === 'admin' 
                   ? 'Yöneticiler tüm işlemleri yapabilir, onay verebilir ve raporları görüntüleyebilir.' 
-                  : 'Destek personeli sadece kendi destek kayıtlarını yönetebilir.'}
+                  : 'Destek personeli sadece kendi hizmet servis formlarını yönetebilir.'}
               </p>
             </div>
 

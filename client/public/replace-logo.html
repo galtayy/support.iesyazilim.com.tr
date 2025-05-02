@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Logo Değiştirme</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #3a7bd5;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #3a7bd5;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .logo-preview {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .logo-preview img {
+      max-width: 200px;
+      max-height: 100px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Logo Değiştirme Aracı</h1>
+  <p>Bu sayfa sistemdeki logoyu manuel olarak değiştirmenize olanak tanır.</p>
+  
+  <div class="form-group">
+    <label for="file-upload">Logo Yükle (PNG, JPG)</label>
+    <input type="file" id="file-upload" accept="image/*" />
+  </div>
+  
+  <div class="logo-preview">
+    <h3>Mevcut Logo</h3>
+    <img id="current-logo" src="" alt="Mevcut logo" />
+  </div>
+  
+  <button id="upload-btn">Logoyu Güncelle</button>
+  <button id="reset-btn">Varsayılan Logoya Dön</button>
+  
+  <div id="message" style="margin-top: 20px;"></div>
+  
+  <p><small>Not: Logo değişikliği tüm sayfalarda anında görünmeyebilir. Değişikliği görmek için sayfaları yenileyin.</small></p>
+  
+  <script>
+    // Mevcut logoyu yükle
+    function loadCurrentLogo() {
+      const currentLogo = localStorage.getItem('companyLogo');
+      if (currentLogo) {
+        document.getElementById('current-logo').src = currentLogo;
+      } else {
+        document.getElementById('current-logo').src = "/assets/images/iesyazilim-logo.png";
+      }
+    }
+    
+    // Logoyu değiştir
+    document.getElementById('upload-btn').addEventListener('click', function() {
+      const fileInput = document.getElementById('file-upload');
+      const messageDiv = document.getElementById('message');
+      
+      if (!fileInput.files || !fileInput.files[0]) {
+        messageDiv.innerHTML = '<p class="error">Lütfen bir logo dosyası seçin.</p>';
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      
+      // Dosyayı base64'e dönüştür
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
+        
+        // Base64 kodunu localStorage'a kaydet
+        localStorage.setItem('companyLogo', base64Data);
+        
+        // Önizlemeyi güncelle
+        document.getElementById('current-logo').src = base64Data;
+        
+        // Logo değiştirme olayını tetikle
+        window.dispatchEvent(new Event('logoUpdated'));
+        
+        messageDiv.innerHTML = '<p class="success">Logo başarıyla güncellendi! Değişikliği görmek için lütfen sayfaları yenileyin.</p>';
+      };
+      
+      reader.onerror = function() {
+        messageDiv.innerHTML = '<p class="error">Dosya okunurken bir hata oluştu.</p>';
+      };
+      
+      reader.readAsDataURL(file);
+    });
+    
+    // Logoyu varsayılana sıfırla
+    document.getElementById('reset-btn').addEventListener('click', function() {
+      localStorage.removeItem('companyLogo');
+      document.getElementById('current-logo').src = "/assets/images/iesyazilim-logo.png";
+      window.dispatchEvent(new Event('logoUpdated'));
+      document.getElementById('message').innerHTML = '<p class="success">Logo varsayılana döndürüldü! Değişikliği görmek için lütfen sayfaları yenileyin.</p>';
+    });
+    
+    // Sayfa yüklendiğinde mevcut logoyu göster
+    document.addEventListener('DOMContentLoaded', loadCurrentLogo);
+  </script>
+</body>
+</html>

@@ -42,7 +42,7 @@ const MainLayout = () => {
         <TabBar />
         
         <footer className="bg-white shadow-inner py-4 px-6 text-center text-sm text-gray-600 hidden md:block">
-          &copy; {new Date().getFullYear()} Şirketinizin Adı. Tüm hakları saklıdır.
+          &copy; {new Date().getFullYear()}  Tüm hakları saklıdır.
         </footer>
       </div>
     </div>

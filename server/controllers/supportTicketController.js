@@ -354,18 +354,18 @@ exports.getTicketById = async (req, res) => {
     });
     
     if (!ticket) {
-      return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+      return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
     }
     
     // Check if user has permission to view this ticket
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu servis kaydını görüntüleme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu hizmet servis formunu görüntüleme yetkiniz yok.' });
     }
     
     res.json(ticket);
   } catch (error) {
     console.error('Get ticket by id error:', error);
-    res.status(500).json({ error: 'Destek kaydı alınırken bir hata oluştu.' });
+    res.status(500).json({ error: 'Hizmet servis formu alınırken bir hata oluştu.' });
   }
 };
 
@@ -414,7 +414,7 @@ exports.createTicket = async (req, res) => {
     res.status(201).json(createdTicket);
   } catch (error) {
     console.error('Create ticket error:', error);
-    res.status(500).json({ error: 'Destek kaydı oluşturulurken bir hata oluştu.' });
+    res.status(500).json({ error: 'Hizmet servis formu oluşturulurken bir hata oluştu.' });
   }
 };
 
@@ -431,17 +431,17 @@ exports.updateTicket = async (req, res) => {
     const ticket = await SupportTicket.findByPk(req.params.id);
     
     if (!ticket) {
-      return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+      return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
     }
     
     // Check if user has permission to update this ticket
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu servis kaydını güncelleme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu hizmet servis formunu güncelleme yetkiniz yok.' });
     }
     
     // Check if ticket is already approved/rejected
     if (ticket.status !== 'pending' && req.user.role !== 'admin') {
-      return res.status(400).json({ error: 'Onaylanmış veya reddedilmiş servis kaydı güncellenemez.' });
+      return res.status(400).json({ error: 'Onaylanmış veya reddedilmiş hizmet servis formu güncellenemez.' });
     }
     
     // Update ticket
@@ -486,7 +486,7 @@ exports.updateTicket = async (req, res) => {
     res.json(updatedTicket);
   } catch (error) {
     console.error('Update ticket error:', error);
-    res.status(500).json({ error: 'Destek kaydı güncellenirken bir hata oluştu.' });
+    res.status(500).json({ error: 'Hizmet servis formu güncellenirken bir hata oluştu.' });
   }
 };
 
@@ -503,7 +503,7 @@ exports.updateTicketStatus = async (req, res) => {
     const ticket = await SupportTicket.findByPk(req.params.id);
     
     if (!ticket) {
-      return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+      return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
     }
     
     // Only admin can approve/reject tickets
@@ -546,7 +546,7 @@ exports.updateTicketStatus = async (req, res) => {
     res.json(updatedTicket);
   } catch (error) {
     console.error('Update ticket status error:', error);
-    res.status(500).json({ error: 'Destek kaydı durumu güncellenirken bir hata oluştu.' });
+    res.status(500).json({ error: 'Hizmet servis formu durumu güncellenirken bir hata oluştu.' });
   }
 };
 
@@ -558,17 +558,17 @@ exports.deleteTicket = async (req, res) => {
     });
     
     if (!ticket) {
-      return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+      return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
     }
     
     // Check if user has permission to delete this ticket
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu servis kaydını silme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu hizmet servis formunu silme yetkiniz yok.' });
     }
     
     // Check if ticket is already approved
     if (ticket.status === 'approved' && req.user.role !== 'admin') {
-      return res.status(400).json({ error: 'Onaylanmış servis kaydı silinemez.' });
+      return res.status(400).json({ error: 'Onaylanmış hizmet servis formu silinemez.' });
     }
     
     // Delete associated images from storage
@@ -584,10 +584,10 @@ exports.deleteTicket = async (req, res) => {
     // Delete ticket (associated images will be deleted via CASCADE)
     await ticket.destroy();
     
-    res.json({ message: 'Destek kaydı başarıyla silindi.' });
+    res.json({ message: 'Hizmet servis formu başarıyla silindi.' });
   } catch (error) {
     console.error('Delete ticket error:', error);
-    res.status(500).json({ error: 'Destek kaydı silinirken bir hata oluştu.' });
+    res.status(500).json({ error: 'Hizmet servis formu silinirken bir hata oluştu.' });
   }
 };
 
@@ -612,7 +612,7 @@ exports.uploadTicketImage = async (req, res) => {
         if (req.file) {
           fs.unlinkSync(req.file.path);
         }
-        return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+        return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
       }
       
       // Check if user has permission
@@ -621,7 +621,7 @@ exports.uploadTicketImage = async (req, res) => {
         if (req.file) {
           fs.unlinkSync(req.file.path);
         }
-        return res.status(403).json({ error: 'Bu servis kaydına resim ekleme yetkiniz yok.' });
+        return res.status(403).json({ error: 'Bu hizmet servis formuna resim ekleme yetkiniz yok.' });
       }
       
       if (!req.file) {
@@ -664,12 +664,12 @@ exports.deleteTicketImage = async (req, res) => {
     // Find ticket and image
     const ticket = await SupportTicket.findByPk(ticketId);
     if (!ticket) {
-      return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+      return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
     }
     
     // Check if user has permission
     if (req.user.role !== 'admin' && ticket.supportStaffId !== req.user.id) {
-      return res.status(403).json({ error: 'Bu servis kaydından resim silme yetkiniz yok.' });
+      return res.status(403).json({ error: 'Bu hizmet servis formundan resim silme yetkiniz yok.' });
     }
     
     const image = await TicketImage.findOne({

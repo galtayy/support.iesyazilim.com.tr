@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 /**
  * PDF Yönlendirme Bileşeni
  * 
- * E-postaadaki PDF linki ile servis kaydı detayındaki PDF indirme butonunun
+ * E-postaadaki PDF linki ile hizmet servis formu detayındaki PDF indirme butonunun
  * aynı görevi görmesini sağlamak için yönlendirme yapar.
  */
 const PDFRedirect = () => {

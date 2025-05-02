@@ -4,71 +4,88 @@ const path = require('path');
 
 // Generate PDF for a ticket
 const generateTicketPDF = async (ticket, outputStream) => {
-  return new Promise((resolve, reject) => {
+  try {
+    // Şirket bilgilerini çekmeye çalış
+    const { Setting } = require('../models');
+    let companyName = 'IES YAZILIM VE DANIŞMANLIK';
+    let companyShortName = 'IES Yazılım';
+    
     try {
-      // PDF ayarlarını hazırla
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        info: {
-          Title: `IES Yazılım Servis Kaydı #${ticket.id}`,
-          Author: 'IES Yazılım ve Danışmanlık',
-          Subject: 'Servis Kaydı Raporu',
-          Keywords: 'servis, destek, rapor'
-        }
-      });
-
-      // Font yollarını belirle
-      const FONTS_DIR = path.join(__dirname, '..', 'assets', 'fonts', 'roboto');
-      const REGULAR_FONT = path.join(FONTS_DIR, 'Roboto-Regular.ttf');
-      const BOLD_FONT = path.join(FONTS_DIR, 'Roboto-Bold.ttf');
-      
-      // Fontları kaydet
-      doc.registerFont('Roboto', REGULAR_FONT);
-      doc.registerFont('Roboto-Bold', BOLD_FONT);
-
-      // Pipe the PDF to the output stream
-      doc.pipe(outputStream);
-      
-      // Stream events for file output
-      if (outputStream instanceof fs.WriteStream) {
-        outputStream.on('finish', () => {
-          resolve({
-            filePath: outputStream.path,
-            fileName: path.basename(outputStream.path)
-          });
-        });
-        outputStream.on('error', (err) => {
-          reject(err);
-        });
-      } else {
-        // For direct response streaming, use doc.end event
-        doc.on('end', () => {
-          resolve();
-        });
+      // Veritabanından şirket bilgilerini al
+      const companyInfoSetting = await Setting.findByPk('companyInfo');
+      if (companyInfoSetting) {
+        const companyInfo = JSON.parse(companyInfoSetting.value);
+        if (companyInfo.name) companyName = companyInfo.name;
+        if (companyInfo.shortName) companyShortName = companyInfo.shortName;
       }
-
-      // Set up some colors for the document
-      const colors = {
-        primary: '#1e40af', // IES Mavi (koyu)
-        secondary: '#3b82f6', // IES Mavi (açık)
-        accent: '#0284c7',
-        text: '#333333',
-        lightText: '#6b7280',
-        lightGray: '#f3f4f6',
-        border: '#e5e7eb'
-      };
+    } catch (error) {
+      console.error('Şirket bilgileri alınamadı:', error);
+      // Varsayılan değerleri kullan
+    }
+    
+    return new Promise((resolve, reject) => {
+      try {
+        // PDF ayarlarını hazırla
+        const doc = new PDFDocument({
+          size: 'A4',
+          margin: 50,
+          info: {
+            Title: `${companyShortName} Servis Formu #${ticket.id}`,
+            Author: companyName,
+            Subject: 'Servis Formu Raporu',
+            Keywords: 'servis, destek, rapor'
+          }
+        });
+  
+        // Font yollarını belirle
+        const FONTS_DIR = path.join(__dirname, '..', 'assets', 'fonts', 'roboto');
+        const REGULAR_FONT = path.join(FONTS_DIR, 'Roboto-Regular.ttf');
+        const BOLD_FONT = path.join(FONTS_DIR, 'Roboto-Bold.ttf');
+        
+        // Fontları kaydet
+        doc.registerFont('Roboto', REGULAR_FONT);
+        doc.registerFont('Roboto-Bold', BOLD_FONT);
+  
+        // Pipe the PDF to the output stream
+        doc.pipe(outputStream);
+        
+        // Stream events for file output
+        if (outputStream instanceof fs.WriteStream) {
+          outputStream.on('finish', () => {
+            resolve({
+              filePath: outputStream.path,
+              fileName: path.basename(outputStream.path)
+            });
+          });
+          outputStream.on('error', (err) => {
+            reject(err);
+          });
+        } else {
+          // For direct response streaming, use doc.end event
+          doc.on('end', () => {
+            resolve();
+          });
+        }
+  
+        // Set up some colors for the document
+        const colors = {
+          primary: '#1e40af', // IES Mavi (koyu)
+          secondary: '#3b82f6', // IES Mavi (açık)
+          accent: '#0284c7',
+          text: '#333333',
+          lightText: '#6b7280',
+          lightGray: '#f3f4f6',
+          border: '#e5e7eb'
+        };
       
       // Add header with logo and company info
       doc.fillColor(colors.primary)
          .font('Roboto-Bold')
          .fontSize(16)
-         .text('IES YAZILIM VE DANIŞMANLIK', 50, 50)
+         .text(companyName, 50, 50)
          .fontSize(14)
          .font('Roboto')
-         .text('SAN. TİC. LTD. ŞTİ.', 50, 75)
-         .fontSize(14)
-         .text('Servis Raporu', 50, 95)
+         .text('Servis Raporu', 50, 75)
          .moveDown();
 
       // Add document title and info
@@ -298,22 +315,26 @@ const generateTicketPDF = async (ticket, outputStream) => {
          .rect(50, 780, 495, 2)
          .fill();
       
-      doc.fontSize(8)
-         .fillColor(colors.lightText)
-         .font('Roboto')
-         .text(
-           'IES Yazılım ve Danışmanlık San. Tic. Ltd. Şti. • www.iesyazilim.com.tr',
-           50, 790,
-           { align: 'center', width: 495 }
-         );
-      
-      // End the document
-      doc.end();
-    } catch (error) {
-      console.error('PDF Generation Error:', error);
-      reject(error);
-    }
-  });
+        doc.fontSize(8)
+           .fillColor(colors.lightText)
+           .font('Roboto')
+           .text(
+             companyName + ' • ' + companyShortName,
+             50, 790,
+             { align: 'center', width: 495 }
+           );
+        
+        // End the document
+        doc.end();
+      } catch (error) {
+        console.error('PDF Generation Error:', error);
+        reject(error);
+      }
+    });
+  } catch (error) {
+    console.error('PDF Generation Outer Error:', error);
+    throw error;
+  }
 };
 
 // Helper functions

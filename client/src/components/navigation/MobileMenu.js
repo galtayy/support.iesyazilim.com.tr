@@ -19,7 +19,7 @@ const MobileMenu = ({ open, setOpen }) => {
   // Navigation items
   const navigation = [
     { name: 'Genel Bakış', to: '/', icon: HomeIcon },
-    { name: 'Destek Kayıtları', to: '/tickets', icon: DocumentDuplicateIcon },
+    { name: 'Hizmet Servis Formları', to: '/tickets', icon: DocumentDuplicateIcon },
   ];
 
   // Admin only navigation items
@@ -27,7 +27,7 @@ const MobileMenu = ({ open, setOpen }) => {
     { name: 'Müşteriler', to: '/customers', icon: UserGroupIcon },
     { name: 'Kategoriler', to: '/categories', icon: TagIcon },
     { name: 'Kullanıcılar', to: '/users', icon: UserIcon },
-    { name: 'Raporlar', to: '/reports', icon: ChartBarIcon },
+    { name: 'Raporlar', to: '/reports', icon: ChartBarIcon }
   ];
 
   return (

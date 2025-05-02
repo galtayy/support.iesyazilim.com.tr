@@ -242,7 +242,7 @@ const MonthlySummary = () => {
           <Card title="Özet Bilgiler">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg bg-gray-50 p-4">
-                <h3 className="text-sm font-medium text-gray-500">Toplam Servis Kaydı</h3>
+                <h3 className="text-sm font-medium text-gray-500">Toplam Servis Formu</h3>
                 <p className="mt-2 text-3xl font-semibold text-primary">
                   {report.overall?.totalTickets || 0}
                 </p>

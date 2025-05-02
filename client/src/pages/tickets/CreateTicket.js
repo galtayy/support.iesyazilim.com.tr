@@ -4,6 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
 import Alert from '../../components/ui/Alert';
@@ -22,13 +23,24 @@ const CreateTicket = () => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState(null);
+  // İş açıklamaları için state
+  const [workItems, setWorkItems] = useState([{ id: 1, text: '', checked: true }]);
+  const [nextWorkItemId, setNextWorkItemId] = useState(2);
 
   // Form validation schema
   const validationSchema = Yup.object({
     customerId: Yup.string().required('Müşteri seçimi zorunludur'),
     categoryId: Yup.string().required('Kategori seçimi zorunludur'),
     subject: Yup.string().required('İş konusu zorunludur').max(100, 'İş konusu en fazla 100 karakter olabilir'),
-    description: Yup.string().required('İş açıklaması zorunludur'),
+    description: Yup.string().test(
+      'at-least-one-work-item',
+      'En az bir iş açıklaması eklenmelidir',
+      function() {
+        // workItems state'inde en az bir aktif ve içeriği olan iş var mı kontrol et
+        const hasValidWorkItem = workItems.some(item => item.checked && item.text.trim() !== '');
+        return hasValidWorkItem;
+      }
+    ),
     startTime: Yup.date().required('Başlangıç saati zorunludur'),
     endTime: Yup.date()
       .required('Bitiş saati zorunludur')
@@ -77,6 +89,15 @@ const CreateTicket = () => {
         setLoading(true);
         setError(null);
         
+        // İşaretli ve içeriği olan tüm iş öğelerini birleştir
+        const formattedDescription = workItems
+          .filter(item => item.checked && item.text.trim() !== '')
+          .map((item, index) => `#${index + 1}: ${item.text.trim()}`)
+          .join('\n\n');
+        
+        // Description alanını güncelle
+        values.description = formattedDescription;
+        
         // Create ticket
         const response = await ticketService.createTicket(values);
         const ticketId = response.data.id;
@@ -87,13 +108,13 @@ const CreateTicket = () => {
         }
         
         // Show success message
-        toast.success('Destek kaydı başarıyla oluşturuldu.');
+        toast.success('Hizmet servis formu başarıyla oluşturuldu.');
         
         // Navigate to ticket detail
         navigate(`/tickets/${ticketId}`);
       } catch (err) {
         console.error('Error creating ticket:', err);
-        setError('Destek kaydı oluşturulurken bir hata oluştu.');
+        setError('Hizmet servis formu oluşturulurken bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -180,11 +201,47 @@ const CreateTicket = () => {
     }
   };
 
+  // İş açıklaması ekleme
+  const addWorkItem = () => {
+    setWorkItems([...workItems, { id: nextWorkItemId, text: '', checked: true }]);
+    setNextWorkItemId(nextWorkItemId + 1);
+  };
+
+  // İş açıklaması silme
+  const removeWorkItem = (id) => {
+    setWorkItems(workItems.filter(item => item.id !== id));
+    formik.validateForm(); // Formun doğrulamasını tetikle
+  };
+
+  // Checkbox değişimini izleme
+  const handleCheckboxChange = (id) => {
+    setWorkItems(workItems.map(item => 
+      item.id === id ? { ...item, checked: !item.checked } : item
+    ));
+    formik.validateForm(); // Formun doğrulamasını tetikle
+  };
+
+  // İş metni değişimini izleme
+  const handleWorkItemChange = (id, value) => {
+    setWorkItems(workItems.map(item => 
+      item.id === id ? { ...item, text: value } : item
+    ));
+    
+    // description alanını güncelle - aktif olan işler için birleştirilmiş metin
+    const combinedDescription = workItems
+      .filter(item => item.checked)
+      .map(item => item.id === id ? value : item.text)
+      .filter(text => text.trim() !== '')
+      .join('\n\n');
+      
+    formik.setFieldValue('description', combinedDescription);
+  };
+
   return (
     <div>
       <PageHeader
-        title="Yeni Servis Kaydı"
-        description="Yeni bir servis kaydı oluşturun"
+        title="Yeni Hizmet Servis Formu"
+        description="Yeni bir hizmet servis formu oluşturun"
         breadcrumbItems={[
           { label: 'Servis Kayıtları', to: '/tickets' },
           { label: 'Yeni Kayıt' }
@@ -382,26 +439,64 @@ const CreateTicket = () => {
             </div>
             
             <div className="sm:col-span-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                İş Açıklaması *
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                rows={4}
-                className={`form-input mt-1 ${
-                  formik.touched.description && formik.errors.description
-                    ? 'border-red-300 focus:ring-red-500'
-                    : ''
-                }`}
-                value={formik.values.description}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                placeholder="İşle ilgili detaylı açıklama"
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  İş Açıklamaları *
+                </label>
+                <button 
+                  type="button" 
+                  onClick={addWorkItem}
+                  className="text-primary hover:text-primary-dark flex items-center text-sm font-medium"
+                >
+                  <PlusIcon className="h-4 w-4 mr-1" /> Yeni İş Ekle
+                </button>
+              </div>
+              
+              <div className="space-y-3 mt-2">
+                {workItems.map((item) => (
+                  <div key={item.id} className="flex items-start space-x-2 bg-gray-50 p-3 rounded-md">
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() => handleCheckboxChange(item.id)}
+                      className="form-checkbox mt-1.5 h-4 w-4 text-primary rounded"
+                    />
+                    <div className="flex-grow">
+                      <textarea
+                        rows={2}
+                        placeholder="İş detayını girin"
+                        value={item.text}
+                        onChange={(e) => handleWorkItemChange(item.id, e.target.value)}
+                        disabled={!item.checked}
+                        className={`form-input w-full ${!item.checked ? 'bg-gray-100 text-gray-500' : ''}`}
+                      />
+                    </div>
+                    {workItems.length > 1 && (
+                      <button 
+                        type="button" 
+                        onClick={() => removeWorkItem(item.id)}
+                        className="text-red-500 hover:text-red-700 focus:outline-none mt-1"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              <input 
+                type="hidden" 
+                name="description" 
+                value={formik.values.description} 
               />
+              
               {formik.touched.description && formik.errors.description && (
-                <p className="mt-1 text-sm text-red-600">{formik.errors.description}</p>
+                <p className="mt-2 text-sm text-red-600">{formik.errors.description}</p>
               )}
+              
+              <p className="mt-2 text-xs text-gray-500">
+                * Checkbox işaretlendiğinde metin alanı aktif olur. İşaretlenen tüm işler servis formuna eklenecektir.
+              </p>
             </div>
 
             <div className="sm:col-span-2">

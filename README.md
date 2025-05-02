@@ -2,11 +2,11 @@
 
 ## Proje Hakkında
 
-Bu proje, IES Yazılım çalışanlarının müşteri saha ziyaretleri sırasında destek kayıtlarını tutmak, onaylamak ve raporlamak için geliştirilmiş bir web uygulamasıdır.
+Bu proje, IES Yazılım çalışanlarının müşteri saha ziyaretleri sırasında hizmet servis formlarını tutmak, onaylamak ve raporlamak için geliştirilmiş bir web uygulamasıdır.
 
 ### Temel Özellikler
 
-- Saha destek kayıtları oluşturma ve yönetme
+- Saha hizmet servis formları oluşturma ve yönetme
 - Müşteri yönetimi
 - İş kategorileri yönetimi
 - Kullanıcı yönetimi (Destek Personeli ve Yönetici rolleri)
@@ -88,12 +88,12 @@ npm start
 ### Kullanıcı Rolleri
 
 - **Destek Personeli**: Destek kayıtları oluşturabilir, düzenleyebilir ve görüntüleyebilir
-- **Yönetici**: Tüm özelliklere erişebilir, destek kayıtlarını onaylayabilir/reddedebilir, müşterileri, kategorileri ve kullanıcıları yönetebilir, raporları görüntüleyebilir
+- **Yönetici**: Tüm özelliklere erişebilir, hizmet servis formlarını onaylayabilir/reddedebilir, müşterileri, kategorileri ve kullanıcıları yönetebilir, raporları görüntüleyebilir
 
 ### Temel İş Akışı
 
 1. Destek personeli müşteri ziyareti yaparak ilgili işleri gerçekleştirir
-2. Uygulama üzerinden servis kaydı oluşturur:
+2. Uygulama üzerinden hizmet servis formu oluşturur:
    - Müşteri seçimi
    - Kategori seçimi
    - İş açıklaması
@@ -124,4 +124,4 @@ IES Yazılım'a aittir. Tüm hakları saklıdır.
 
 ---
 
-© 2025 IES Yazılım. Bu uygulama IES Yazılım tarafından geliştirilmiştir.
+©  IES Yazılım. Bu uygulama IES Yazılım tarafından geliştirilmiştir.

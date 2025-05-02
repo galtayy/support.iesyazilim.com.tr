@@ -106,7 +106,7 @@ const TicketApproval = () => {
             IES Yazılım Destek
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Destek kaydı onay sistemi
+            Hizmet servis formu onay sistemi
           </p>
         </div>
 
@@ -146,10 +146,10 @@ const TicketApproval = () => {
             <Card>
               <div className="mb-4 text-center">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Servis Kaydı Onayı
+                  Servis Formu Onayı
                 </h2>
                 <p className="text-gray-600 text-sm mt-1">
-                  Lütfen aşağıdaki servis kaydını onaylayın veya reddedin.
+                  Lütfen aşağıdaki hizmet servis formunu onaylayın veya reddedin.
                 </p>
               </div>
               
@@ -298,7 +298,7 @@ const TicketApproval = () => {
         }
       >
         <p className="text-gray-700 mb-4">
-          Lütfen servis kaydını reddetme nedeninizi belirtin.
+          Lütfen hizmet servis formunu reddetme nedeninizi belirtin.
         </p>
         <textarea
           className="form-input w-full"

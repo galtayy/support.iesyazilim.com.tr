@@ -103,13 +103,13 @@ const EditTicket = () => {
         await ticketService.updateTicket(id, values);
         
         // Show success message
-        toast.success('Destek kaydı başarıyla güncellendi.');
+        toast.success('Hizmet servis formu başarıyla güncellendi.');
         
         // Navigate to ticket detail
         navigate(`/tickets/${id}`);
       } catch (err) {
         console.error('Error updating ticket:', err);
-        setError('Destek kaydı güncellenirken bir hata oluştu.');
+        setError('Hizmet servis formu güncellenirken bir hata oluştu.');
       } finally {
         setSubmitting(false);
       }
@@ -134,7 +134,7 @@ const EditTicket = () => {
       <Alert
         type="error"
         title="Hata"
-        message="Destek kaydı bulunamadı."
+        message="Hizmet servis formu bulunamadı."
         className="mt-6"
       />
     );
@@ -143,10 +143,10 @@ const EditTicket = () => {
   return (
     <div>
       <PageHeader
-        title="Servis Kaydını Düzenle"
-        description="Destek kaydı bilgilerini güncelleyin"
+        title="Servis Formunu Düzenle"
+        description="Hizmet servis formu bilgilerini güncelleyin"
         breadcrumbItems={[
-          { label: 'Destek Kayıtları', to: '/tickets' },
+          { label: 'Hizmet Servis Formları', to: '/tickets' },
           { label: 'Düzenle' }
         ]}
       />

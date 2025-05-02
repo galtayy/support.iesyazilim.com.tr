@@ -282,7 +282,7 @@ const CustomerList = () => {
           <p>
             <span className="font-medium">{customerToDelete?.name}</span> müşterisini silmek istediğinizden emin misiniz?
           </p>
-          <p className="mt-2 font-medium">Bu işlem geri alınamaz ve müşteriye ait tüm destek kayıtları da silinecektir.</p>
+          <p className="mt-2 font-medium">Bu işlem geri alınamaz ve müşteriye ait tüm hizmet servis formları da silinecektir.</p>
         </div>
       </Modal>
     </div>

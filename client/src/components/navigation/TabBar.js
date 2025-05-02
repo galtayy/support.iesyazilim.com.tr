@@ -34,7 +34,7 @@ const TabBar = () => {
   // Tabs for non-admin users
   const tabs = [
     { name: 'Ana Sayfa', to: '/', icon: HomeIcon },
-    { name: 'Destek Kayıtları', to: '/tickets', icon: DocumentDuplicateIcon },
+    { name: 'Hizmet Servis Formları', to: '/tickets', icon: DocumentDuplicateIcon },
     { name: 'Yeni Kayıt', to: '/tickets/new', exact: true, icon: PlusCircleIcon },
     { name: 'Profil', to: '/profile', icon: UserCircleIcon },
   ];

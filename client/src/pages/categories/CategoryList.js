@@ -135,10 +135,9 @@ const CategoryList = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div 
-                            className="h-6 w-6 rounded mr-2" 
+                            className="h-6 w-6 rounded" 
                             style={{ backgroundColor: category.color }}
                           ></div>
-                          <span className="text-sm text-gray-900">{category.color}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -193,7 +192,6 @@ const CategoryList = () => {
                         ></div>
                         <div>
                           <h3 className="font-medium text-gray-900">{category.name}</h3>
-                          <p className="text-sm text-gray-500">{category.color}</p>
                         </div>
                       </div>
                       <div>
@@ -282,7 +280,7 @@ const CategoryList = () => {
           <p>
             <span className="font-medium">{categoryToDelete?.name}</span> kategorisini silmek istediğinizden emin misiniz?
           </p>
-          <p className="mt-2 font-medium">Bu işlem geri alınamaz ve bu kategoriye ait tüm destek kayıtları etkilenecektir.</p>
+          <p className="mt-2 font-medium">Bu işlem geri alınamaz ve bu kategoriye ait tüm hizmet servis formları etkilenecektir.</p>
         </div>
       </Modal>
     </div>

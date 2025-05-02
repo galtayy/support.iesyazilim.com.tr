@@ -23,6 +23,9 @@ db.Category = require('./category')(sequelize, Sequelize);
 db.SupportTicket = require('./supportTicket')(sequelize, Sequelize);
 db.TicketImage = require('./ticketImage')(sequelize, Sequelize);
 
+// Import Setting model
+db.Setting = require('./setting')(sequelize, Sequelize.DataTypes);
+
 // Define relationships
 db.User.hasMany(db.SupportTicket, { foreignKey: 'supportStaffId' });
 db.SupportTicket.belongsTo(db.User, { foreignKey: 'supportStaffId', as: 'supportStaff' });

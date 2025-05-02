@@ -14,12 +14,18 @@ const CreateCategory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  // Default colors from corporate identity
+  // 10 distinct colors palette
   const colorOptions = [
     { name: 'Ana Mavi', value: '#3A7BD5' },
-    { name: 'Yeşil', value: '#61C28C' },
-    { name: 'Turuncu', value: '#FFA84B' },
-    { name: 'Kırmızı', value: '#E05A5A' }
+    { name: 'Yeşil', value: '#10B981' },
+    { name: 'Turuncu', value: '#F97316' },
+    { name: 'Kırmızı', value: '#EF4444' },
+    { name: 'Mor', value: '#8B5CF6' },
+    { name: 'Pembe', value: '#EC4899' },
+    { name: 'Sarı', value: '#FBBF24' },
+    { name: 'Lacivert', value: '#1E40AF' },
+    { name: 'Kahverengi', value: '#92400E' },
+    { name: 'Turkuaz', value: '#06B6D4' }
   ];
 
   // Form validation schema
@@ -123,39 +129,33 @@ const CreateCategory = () => {
               <label className="block text-sm font-medium text-gray-700">
                 Renk *
               </label>
-              <div className="mt-2 flex flex-wrap gap-3">
+              <div className="mt-2 grid grid-cols-5 gap-4">
                 {colorOptions.map((color) => (
                   <button
                     key={color.value}
                     type="button"
-                    className={`p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-                      formik.values.color === color.value
-                        ? 'ring-2 ring-offset-2 ring-primary'
-                        : ''
-                    }`}
+                    className="relative focus:outline-none"
                     onClick={() => formik.setFieldValue('color', color.value)}
                   >
                     <div
-                      className="h-8 w-8 rounded-full"
+                      className={`relative h-10 w-10 rounded-full mx-auto transition-all duration-200 border-2 ${
+                        formik.values.color === color.value 
+                          ? 'border-gray-700' 
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
                       style={{ backgroundColor: color.value }}
                       title={color.name}
-                    ></div>
+                    >
+                      {formik.values.color === color.value && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-6 h-6">
+                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                   </button>
                 ))}
-                
-                <div className="flex items-center">
-                  <input
-                    type="color"
-                    id="color"
-                    name="color"
-                    value={formik.values.color}
-                    onChange={formik.handleChange}
-                    className="h-8 w-8 rounded-full cursor-pointer"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    {formik.values.color}
-                  </span>
-                </div>
               </div>
               {formik.touched.color && formik.errors.color && (
                 <p className="mt-1 text-sm text-red-600">{formik.errors.color}</p>

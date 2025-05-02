@@ -1,4 +1,4 @@
-const { SupportTicket, Customer, Category, User } = require('../models');
+const { SupportTicket, Customer, Category, User, TicketImage } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../utils/email/emailService');
 const { getApprovalRequestEmail, getApprovalCompletedEmail } = require('../utils/email/emailTemplates');
@@ -29,12 +29,12 @@ exports.sendApprovalEmail = async (req, res) => {
     });
     
     if (!ticket) {
-      return res.status(404).json({ error: 'Destek kaydı bulunamadı.' });
+      return res.status(404).json({ error: 'Hizmet servis formu bulunamadı.' });
     }
     
     // Check if ticket is already approved/rejected
     if (ticket.status !== 'pending') {
-      return res.status(400).json({ error: 'Bu servis kaydı zaten onaylanmış veya reddedilmiş.' });
+      return res.status(400).json({ error: 'Bu hizmet servis formu zaten onaylanmış veya reddedilmiş.' });
     }
     
     // Check if customer has contact email
@@ -70,38 +70,139 @@ exports.sendApprovalEmail = async (req, res) => {
       ? process.env.API_URL || 'https://api.support.iesyazilim.com.tr/api'
       : process.env.API_URL || 'http://localhost:5051/api';
       
-    // Generate PDF file and send as attachment to email
+    // PDF oluştur ve e-posta ekine ekle
     try {
-      // PDF buffer oluştur
-      const pdfBuffer = await generateTicketPDFToBuffer(ticket);
+      console.log('PDF oluşturma başlıyor...');
       
-      // PDF dosyası için dosya adı oluştur
-      const pdfFileName = `servis-kaydi-${ticket.id}.pdf`;
+      // NodeJS modülleri
+      const fs = require('fs');
+      const path = require('path');
       
-      // Prepare email with PDF attachment
-      const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink);
+      // Projedeki uploads klasörü
+      const uploadDir = path.join(__dirname, '..', 'uploads');
       
-      // Send email with attachment
+      // Klasörün varlığını kontrol et, yoksa oluştur
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      // Detaylı ticket verisini al (resimler dahil)
+      const detailedTicket = await SupportTicket.findByPk(id, {
+        include: [
+          {
+            model: Customer,
+            attributes: ['id', 'name', 'contactPerson', 'contactEmail', 'contactPhone']
+          },
+          {
+            model: Category,
+            attributes: ['id', 'name', 'color']
+          },
+          {
+            model: User,
+            as: 'supportStaff',
+            attributes: ['id', 'firstName', 'lastName', 'email']
+          },
+          {
+            model: User,
+            as: 'approver',
+            attributes: ['id', 'firstName', 'lastName', 'email']
+          },
+          {
+            model: TicketImage,
+            attributes: ['id', 'imagePath', 'description', 'uploadedAt', 'ticketId']
+          }
+        ]
+      });
+      
+      if (!detailedTicket) {
+        throw new Error('Servis kaydı bulunamadı');
+      }
+      
+      // Görseller hakkında log ve kontrol
+      if (detailedTicket.TicketImages && detailedTicket.TicketImages.length > 0) {
+        console.log(`Görseller bulundu: ${detailedTicket.TicketImages.length} adet`);
+        detailedTicket.TicketImages.forEach((img, idx) => {
+          const imgPath = path.join(__dirname, '..', img.imagePath);
+          const imgExists = fs.existsSync(imgPath);
+          console.log(`- Görsel ${idx+1}: ${img.imagePath} ${img.description ? `(${img.description})` : ''} - ${imgExists ? 'Dosya mevcut' : 'DOSYA BULUNAMADI'}`);
+          
+          // Görsel bulundu ama dosya yoksa, yol sorununu logla
+          if (!imgExists) {
+            console.error(`  Görsel dosyası bulunamadı: ${imgPath}`);
+          }
+        });
+      } else {
+        console.log('Servis kaydında görsel bulunamadı');
+      }
+      
+      // PDF dosya yolu
+      const pdfFileName = `servis-kaydi-${detailedTicket.id}.pdf`;
+      const pdfFilePath = path.join(uploadDir, pdfFileName);
+      
+      console.log('PDF dosyaya yazılıyor:', pdfFilePath);
+      
+      // PDF dosyasını oluştur ve geçici dosyaya yaz
+      const pdfStream = fs.createWriteStream(pdfFilePath);
+      
+      // PDF oluşturma işlemi tamamlanana kadar bekle
+      await new Promise((resolve, reject) => {
+        pdfStream.on('finish', resolve);
+        pdfStream.on('error', reject);
+        
+        // PDF oluştur (detaylı veriyi kullanarak)
+        generateTicketPDF(detailedTicket, pdfStream)
+          .then(() => console.log('PDF başarıyla oluşturuldu'))
+          .catch(err => {
+            console.error('PDF oluşturma hatası:', err);
+            reject(err);
+          });
+      });
+      
+      console.log('PDF başarıyla oluşturuldu, e-posta hazırlanıyor...');
+      
+      // E-posta içeriğini hazırla (detaylı ticket bilgilerini kullanarak)
+      const emailHTML = await getApprovalRequestEmail(detailedTicket, approvalLink, rejectLink);
+      
+      console.log('E-posta gönderiliyor (PDF eki ile)...');
+      
+      // E-posta gönder (dosyadan PDF eki ile)
       await sendEmail({
         to: ticket.Customer.contactEmail,
-        subject: 'IES Yazılım Servis Kaydı Onay Talebi',
+        subject: 'Servis Formu Onay Talebi',
         html: emailHTML,
         attachments: [
           {
             filename: pdfFileName,
-            content: pdfBuffer,
-            contentType: 'application/pdf'
+            path: pdfFilePath  // Doğrudan dosya yolu kullanılıyor
           }
         ]
       });
+      
+      console.log('E-posta başarıyla gönderildi, PDF temizleniyor...');
+      
+      // İşlem bitince PDF dosyasını sil
+      try {
+        fs.unlinkSync(pdfFilePath);
+        console.log('Geçici PDF dosyası silindi');
+      } catch (cleanupErr) {
+        console.warn('Geçici dosya silinirken hata:', cleanupErr.message);
+      }
+      
+      // E-posta gönderiminin başarılı olduğunu kaydet
+      await ticket.update({ emailSent: true });
+      
+      console.log(`Onay e-postası ${ticket.Customer.contactEmail} adresine PDF ekiyle başarıyla gönderildi.`);
     } catch (pdfError) {
       console.error('PDF attachment creation error:', pdfError);
+      console.error('Hata stack trace:', pdfError.stack);
+      
       // PDF hatası olsa bile e-postayı göndermeye devam et
-      const emailHTML = getApprovalRequestEmail(ticket, approvalLink, rejectLink);
+      console.log('PDF eki olmadan e-posta gönderiliyor...');
+      const emailHTML = await getApprovalRequestEmail(ticket, approvalLink, rejectLink);
       
       await sendEmail({
         to: ticket.Customer.contactEmail,
-        subject: 'IES Yazılım Servis Kaydı Onay Talebi',
+        subject: 'Servis Formu Onay Talebi',
         html: emailHTML
       });
     }
@@ -152,7 +253,7 @@ exports.processExternalApproval = async (req, res) => {
     // Check if ticket is already approved/rejected
     if (ticket.status !== 'pending') {
       return res.json({
-        message: 'Bu servis kaydı zaten işlendi.',
+        message: 'Bu hizmet servis formu zaten işlendi.',
         ticket: {
           id: ticket.id,
           status: ticket.status,
@@ -177,18 +278,18 @@ exports.processExternalApproval = async (req, res) => {
     
     // Send confirmation email
     if (ticket.Customer.contactEmail) {
-      const emailHTML = getApprovalCompletedEmail(ticket, status);
+      const emailHTML = await getApprovalCompletedEmail(ticket, status);
       
       await sendEmail({
         to: ticket.Customer.contactEmail,
-        subject: `IES Yazılım Servis Kaydı ${status === 'approved' ? 'Onaylandı' : 'Reddedildi'}`,
+        subject: `Servis Formu ${status === 'approved' ? 'Onaylandı' : 'Reddedildi'}`,
         html: emailHTML
       });
     }
     
     // Return success
     res.json({
-      message: `Destek kaydı başarıyla ${status === 'approved' ? 'onaylandı' : 'reddedildi'}.`,
+      message: `Hizmet servis formu başarıyla ${status === 'approved' ? 'onaylandı' : 'reddedildi'}.`,
       ticket: {
         id: ticket.id,
         status,
@@ -257,7 +358,7 @@ include: [
         return res.json({
           valid: false,
           processed: true,
-          message: `Bu servis kaydı zaten ${processedTicket.status === 'approved' ? 'onaylanmış' : 'reddedilmiş'}.`,
+          message: `Bu hizmet servis formu zaten ${processedTicket.status === 'approved' ? 'onaylanmış' : 'reddedilmiş'}.`,
           ticket: {
             id: processedTicket.id,
             status: processedTicket.status,
@@ -275,7 +376,7 @@ include: [
       return res.json({
         valid: false,
         processed: true,
-        message: `Bu servis kaydı zaten ${ticket.status === 'approved' ? 'onaylanmış' : 'reddedilmiş'}.`,
+        message: `Bu hizmet servis formu zaten ${ticket.status === 'approved' ? 'onaylanmış' : 'reddedilmiş'}.`,
         ticket: {
           id: ticket.id,
           status: ticket.status,

@@ -21,7 +21,7 @@ const BottomNavigation = () => {
   // Farklı kullanıcı rolleri için gezinme öğeleri
   const navigationItems = [
     { name: 'Ana Sayfa', to: '/', icon: HomeIcon },
-    { name: 'Destek Kayıtları', to: '/tickets', icon: DocumentDuplicateIcon },
+    { name: 'Hizmet Servis Formları', to: '/tickets', icon: DocumentDuplicateIcon },
     { name: 'Yeni Kayıt', to: '/tickets/new', icon: PlusCircleIcon },
   ];
 
